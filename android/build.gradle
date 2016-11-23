@@ -5,14 +5,11 @@
 // installed at the location noted below. This build configuration merely
 // automates the process of calling out to it and copying the compiled
 // libraries back into the appropriate directory.
-
 def bazel_location = '/usr/local/bin/bazel'
 def cpuType = 'armeabi-v7a'
-def nativeDir = 'libs/' + cpuType
-
+def nativeDir = 'libs/'
 project.buildDir = 'gradleBuild'
 getProject().setBuildDir('gradleBuild')
-
 buildscript {
     System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
 
@@ -21,15 +18,13 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.3'
+        classpath 'com.android.tools.build:gradle:2.2.2'
     }
 }
-
 apply plugin: 'com.android.application'
-
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    compileSdkVersion 23
+    buildToolsVersion '23.0.3'
 
     lintOptions {
         abortOnError false
@@ -51,22 +46,29 @@ android {
         release.setRoot('build-types/release')
     }
 }
-
-task buildNative(type:Exec) {
+task buildNative(type: Exec) {
     workingDir '../../..'
-    commandLine bazel_location, 'build', '-c', 'opt', \
-      'tensorflow/examples/android:tensorflow_native_libs', \
-       '--crosstool_top=//external:android/crosstool', \
-       '--cpu=' + cpuType, \
-       '--host_crosstool_top=@bazel_tools//tools/cpp:toolchain'
+    commandLine bazel_location, 'build', '-c', 'opt',  \
+       'tensorflow/utilisation/android:tensorflow_native_libs',  \
+        '--crosstool_top=//external:android/crosstool',  \
+        '--cpu=' + cpuType,  \
+        '--host_crosstool_top=@bazel_tools//tools/cpp:toolchain'
 }
 
 task copyNativeLibs(type: Copy) {
-    from('../../../bazel-bin/tensorflow/examples/android') { include '**/*.so' }
+    from('../../../bazel-bin/tensorflow/utilisation/android/_dx/tensorflow_demo/native_symlinks/') { include '**' }
     into nativeDir
     duplicatesStrategy = 'include'
 }
 
-copyNativeLibs.dependsOn buildNative
-assemble.dependsOn copyNativeLibs
-assembleDebug.dependsOn copyNativeLibs
+tasks.whenTaskAdded { task ->
+    if (task.name == 'copyNativeLibs') {
+        task.dependsOn 'buildNative'
+    } else if (task.name == 'assemble') {
+        task.dependsOn 'copyNativeLibs'
+    } else if (task.name == 'assembleDebug') {
+        task.dependsOn 'copyNativeLibs'
+    }
+}
+dependencies {
+}
