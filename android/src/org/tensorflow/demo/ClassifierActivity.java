@@ -63,6 +63,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   private static final boolean MAINTAIN_ASPECT = true;
 
   private TensorFlowImageClassifier classifier;
+  private ClassificationSpeaker classificationSpeaker;
 
   private Integer sensorOrientation;
 
@@ -86,6 +87,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
   private BorderedText borderedText;
 
   private long lastProcessingTimeMs;
+
 
   @Override
   protected int getLayoutId() {
@@ -114,6 +116,9 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     } catch (final IOException e) {
       LOGGER.e(e, "Exception!");
     }
+
+    classificationSpeaker = new ClassificationSpeaker();
+    classificationSpeaker.initialize(getApplicationContext());
 
     resultsView = (ResultsView) findViewById(R.id.results);
     previewWidth = size.getWidth();
@@ -216,6 +221,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
             cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
             resultsView.setResults(results);
+            classificationSpeaker.speak(results);
+
             requestRender();
             computing = false;
           }
