@@ -47,3 +47,5 @@ android/gradlew.bat
 android/libs/
 android/gradleBuild/
 android/assets/*
+
+*pyc
