@@ -58,6 +58,7 @@ def read_and_decode_jpg(filename_queue):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value)
+    image = resize(image)
     return tf.cast(image, dtype=tf.float32)
 
 
@@ -65,27 +66,42 @@ def read_and_decode_png(filename_queue):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_png(value)
+    image = resize(image)
     return tf.cast(image, dtype=tf.float32)
 
 
-def resize(image, input_size, scaling_factor):
-    return tf.image.resize_images(image, input_size[0] / scaling_factor, input_size[1] / scaling_factor)
+def decode_class_mask(image):
+    return image[:, :, 0] / 10 * 256 + image[:, :, 1]
+
+
+def decode_instance_mask(image):
+    return tf.unique(image[:, :, 2])[1]
+
+
+def resize(image):
+    image = tf.image.resize_images(image, [IMAGE_WIDTH, IMAGE_WIDTH])
+    image.set_shape([IMAGE_WIDTH, IMAGE_WIDTH, 3])
+    return image
 
 
 def input_pipeline(dataset, num_epochs=500, batch_size=100):
     input_filename_queue = tf.train.string_input_producer(
-        dataset.scenes[:, 0], num_epochs=num_epochs)
-    input_image_data = read_and_decode_jpg(input_filename_queue)
+        tf.constant(dataset.scenes[:, 0]), num_epochs=num_epochs)
 
     segment_filename_queue = tf.train.string_input_producer(
-        dataset.scenes[:, 1], num_epochs=num_epochs)
-    segment_image_data = read_and_decode_jpg(segment_filename_queue)
+        tf.constant(dataset.scenes[:, 1]), num_epochs=num_epochs)
+
+    input_image_data = read_and_decode_jpg(input_filename_queue)
+    segment_image_data = read_and_decode_png(segment_filename_queue)
+
+    segment_class_mask = decode_class_mask(segment_image_data)
+    # segment_instance_mask = decode_instance_mask(segment_image_data)
 
     min_after_dequeue = 250
     capacity = min_after_dequeue + 3 * batch_size
 
     input_batch, segment_batch = tf.train.shuffle_batch(
-        [input_image_data, segment_image_data], batch_size=batch_size, capacity=capacity,
+        [input_image_data, segment_class_mask], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
 
     return input_batch, segment_batch
