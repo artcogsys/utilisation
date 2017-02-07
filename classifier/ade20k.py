@@ -66,8 +66,8 @@ class Dataset:
         mat = loadmat(self.expand(self.version, 'index*.mat'), squeeze_me=True)
         index = mat['index']
         Ade20kIndex = namedtuple('Ade20kIndex', index.dtype.names)
-        # for name in index.dtype.names:
-        #     setattr(self, name, index[name][()])
+        for name in index.dtype.names:
+            setattr(self, name, index[name][()])
         self.index = Ade20kIndex(
             **{name: index[name][()] for name in index.dtype.names})
         self.raw_mat = mat
@@ -177,103 +177,3 @@ class Dataset:
         '''Returns a per-dataset-item count of the object.'''
         # Off by one due to use of 1-based indexing in matlab.
         return self.index.objectPresence[c - 1]
-
-    def scale_image(self, im, dims, crop=False):
-        if len(im.shape) == 2:
-            # Handle grayscale images by adding an RGB channel
-            im = numpy.repeat(im[numpy.newaxis], 3, axis=0)
-        if im.shape[0:2] != dims:
-            if not crop:
-                im = imresize(im, dims)
-            else:
-                source = im.shape[0:2]
-                aspect = float(dims[1]) / dims[0]
-                if aspect * source[0] > source[1]:
-                    width = int(dims[1] / aspect)
-                    margin = (width - dims[0]) // 2
-                    im = imresize(im, (width, dims[1]))[
-                         margin:margin + dims[0], :, :]
-                else:
-                    height = int(dims[0] * aspect)
-                    margin = (height - dims[1]) // 2
-                    im = imresize(im, (dims[0], height))[
-                         margin:margin + dims[1], :, :]
-        return im
-
-    def scale_segmentation(self, segmentation, dims, crop=False):
-        if segmentation.shape[1:] == dims:
-            return segmentation
-        levels = segmentation.shape[0]
-        result = numpy.zeros((levels,) + dims,
-                             dtype=segmentation.dtype)
-        ratio = (1,) + tuple(res / float(orig)
-                             for res, orig in zip(result.shape[1:], segmentation.shape[1:]))
-        if not crop:
-            safezoom(segmentation, ratio, output=result, order=0)
-        else:
-            ratio = max(ratio[1:])
-            height = int(round(dims[0] / ratio))
-            hmargin = (segmentation.shape[0] - height) // 2
-            width = int(round(dims[1] / ratio))
-            wmargin = (segmentation.shape[1] - height) // 2
-            safezoom(segmentation[:, hmargin:hmargin + height,
-                     wmargin:wmargin + width],
-                     (1, ratio, ratio), output=result, order=0)
-        return result
-
-    def save_image(self, im, filename, folder):
-        imsave(os.path.join(folder, filename), im)
-
-    def save_segmentation(self, seg, filename, folder, offset=0):
-        for channel in range(seg.shape[0]):
-            im = encodeClassMask(seg[channel], offset=offset)
-            if channel == 0:
-                fn = re.sub('\.jpg$', '_seg.png', filename)
-            else:
-                fn = re.sub('\.jpg$', '_parts_%s.png' % channel, filename)
-            imsave(os.path.join(folder, fn), im)
-
-    def save_sample(self, folder, size=None, indexes=None, crop=False,
-                    offset=0, reduction=1, progress=False):
-        if indexes is None:
-            indexes = range(self.size())
-
-        count = len(indexes)
-        test_dim = None
-        if size is not None:
-            test_dim = tuple(int(d / reduction) for d in size)
-        for i, index in enumerate(indexes):
-            filename = self.short_filename(index)
-            im = self.image(index)
-            if size is not None:
-                im = self.scale_image(im, size, crop=crop)
-            self.save_image(im, filename, folder)
-            seg = self.full_segmentation(index)
-            if test_dim is not None:
-                seg = self.scale_segmentation(seg, test_dim, crop=crop)
-            self.save_segmentation(seg, filename, folder, offset=offset)
-
-    def save_object_names(self, folder, offset=0):
-        with file(os.path.join(folder, 'object_names.txt'), 'w') as f:
-            for index in range(offset, self.num_object_types()):
-                f.write('%s\t%d\n' % (self.object_name(index), index - offset))
-
-
-def safezoom(array, ratio, output=None, order=0):
-    '''Like numpy.zoom, but does not crash when the first dimension
-    of the array is of size 1, as happens often with segmentations'''
-    dtype = array.dtype
-    if array.dtype == numpy.float16:
-        array = array.astype(numpy.float32)
-    if array.shape[0] == 1:
-        if output is not None:
-            output = output[0, ...]
-        result = zoom(array[0, ...], ratio[1:],
-                      output=output, order=order)
-        if output is None:
-            output = result[numpy.newaxis]
-    else:
-        result = zoom(array, ratio, output=output, order=order)
-        if output is None:
-            output = result
-    return output.astype(dtype)

@@ -1,38 +1,71 @@
 import tensorflow as tf
 
-from pipeline import input_pipeline, training
+from internal_logger import logger
+from model import PVANet
+
+CHECKPOINT_FOLDER = 'checkpoints'
+CHECKPOINT_NAME = 'PVANET'
+CHECKPOINT_STEP = 20
 
 
-def conv2d(tensor, filter_size, input_channels, output_channels):
-    kernel = tf.Variable(
-        tf.truncated_normal([filter_size, filter_size, input_channels, output_channels], dtype=tf.float32, stddev=1e-1),
-        name='filter_weights')
-    conv_2d = tf.nn.conv2d(tensor, kernel, [1, 1, 1, 1], padding="SAME")
+class Train:
+    def __init__(self, image_dimensions=(256, 192), batch_size=2):
+        self.image_dimensions = image_dimensions
+        self.batch_size = batch_size
+        self.model = PVANet(training=True, batch_size=2, image_dimensions=image_dimensions)
+        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
+        # gpu_options = tf.GPUOptions()
+        # self.sess = tf.Session(graph=self.model.graph, config=tf.ConfigProto(gpu_options=gpu_options))
+        self.sess = tf.Session(graph=self.model.graph)
 
-    return conv_2d
+    def train(self):
+        with self.model.graph.as_default():
+            self.sess.run(tf.local_variables_initializer())
+            merged = tf.summary.merge_all()
+            train_writer = tf.summary.FileWriter("summaries", t.model.graph)
+            saver = tf.train.Saver()
+
+            latest_checkpoint = tf.train.latest_checkpoint(CHECKPOINT_FOLDER)
+            if latest_checkpoint:
+                self.log("loading from checkpoint file: " + latest_checkpoint)
+                saver.restore(self.sess, latest_checkpoint)
+            else:
+                self.log("checkpoint not found, initializing variables.")
+            self.sess.run(tf.global_variables_initializer())
+
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=self.sess, coord=coord)
+            avg_loss = .0
+            try:
+                while not coord.should_stop():
+                    self.log("batch")
+                    m, _, loss, step, = self.sess.run(
+                        [merged,
+                         self.model.optimizer,
+                         self.model.loss,
+                         self.model.global_step])
+
+                    train_writer.add_summary(m)
+                    avg_loss += (loss / float(CHECKPOINT_STEP))
+                    if step % CHECKPOINT_STEP == 0:
+                        self.log("past %d runs avg_loss: %.2f" % \
+                                 (CHECKPOINT_STEP, avg_loss))
+                        self.log("saved checkpoint at step " + str(step))
+                        avg_loss, avg_pixel_mse, avg_vgg16_mse = .0, .0, .0
+                        saver.save(self.sess, CHECKPOINT_FOLDER + '/' + CHECKPOINT_NAME, global_step=step)
+            except tf.errors.OutOfRangeError:
+                self.log('Done training -- epoch limit reached')
+            finally:
+                coord.request_stop()
+
+            coord.join(threads)
+            self.sess.close()
+
+    @staticmethod
+    def log(message):
+        logger.info(message)
 
 
-graph = tf.Graph()
-
-#  not really a network, but enough to make a start.
-
-with graph.as_default():
-    input_image, real_image = input_pipeline(training, num_epochs=4, batch_size=5)
-    a = conv2d(input_image, 3, 3, 256)
-    a = tf.Print(a, [a])
-
-with tf.Session(graph=graph) as sess:
-    sess.run(tf.variables_initializer(tf.local_variables()))
-    sess.run(tf.variables_initializer(tf.global_variables()))
-    coord = tf.train.Coordinator()
-    threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-    try:
-        while not coord.should_stop():
-            _a, = sess.run([a])
-    except tf.errors.OutOfRangeError as e:
-        print e.message
-        print('Done training -- epoch limit reached')
-    finally:
-        coord.request_stop()
-    coord.join(threads)
-    sess.close()
+if __name__ == '__main__':
+    t = Train()
+    t.train()

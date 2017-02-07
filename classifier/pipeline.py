@@ -1,107 +1,110 @@
-import numpy as np
+import re
+from collections import namedtuple
+
 import tensorflow as tf
+from scipy.io import loadmat
 
 from settings import *
 
 
 class ADE20K:
-    # 20.210 training
-    # 2.000 validation
+    def __init__(self):
+        mat = loadmat(ADE_20K_MAT_FILE, squeeze_me=True)
+        index = mat['index']
+        ade20k_index = namedtuple('Ade20kIndex', index.dtype.names)
+        for name in index.dtype.names:
+            setattr(self, name, index[name][()])
+        self.index = ade20k_index(
+            **{name: index[name][()] for name in index.dtype.names})
+        self.image_full_paths = self.get_image_filenames()
+        self.segmentation_full_paths = self.get_segmentation_filenames(self.image_full_paths)
 
-    file_types = {"jpg": 0, "png": 1, "txt": 2, "1.png": 3, "2.png": 4, "3.png": 5}
-
-    def __init__(self, folder, number_of_scenes):
-        file_list = self.get_file_list(folder)
-        self.scenes = np.empty([number_of_scenes, len(self.file_types)], dtype=np.object)
-        for file_name in file_list:
-            self.set_file(file_name)
-
-    def set_file(self, file_name):
-        self.scenes[
-            self.file_name_to_scene_index(file_name),
-            self.file_name_to_file_type(file_name)
-        ] = file_name
-
-    @staticmethod
-    def get_file_list(folder):
-        raw_file_list = list(open(folder + INDEX_FILE, 'r'))
-        file_list = map(lambda line: folder + line.rstrip('\n').lstrip('./'), raw_file_list)
-        return file_list
-
-    # def get_training_pipeline(self, batch_size, num_epochs=None):
-    #     file_list = ADE20K.get_file_index(TRAINING_DATA_DIRECTORY)
-    #     return input_pipeline(file_list, batch_size, num_epochs=num_epochs)
+    def get_image_filenames(self):
+        return map(lambda (folder, filename): DATA_DIRECTORY + '/' +
+                                              folder + '/' +
+                                              filename,
+                   zip(self.index.folder, self.index.filename))
 
     @staticmethod
-    def file_name_to_scene_index(file_name):
-        if file_name.endswith("jpg"):
-            idx_str = file_name[-12:-4]
-        elif file_name.endswith("txt") or file_name.endswith("seg.png"):
-            idx_str = file_name[-16:-8]
-        else:
-            idx_str = file_name[-20:-12]
-        # to make them scale form 0 to (arraysize - 1)
-        return int(idx_str) - 1
+    def get_segmentation_filenames(full_paths):
+        return map(ADE20K.image_filename_to_segmentation_filename, full_paths)
 
-    def file_name_to_file_type(self, file_name):
-        if file_name[-5:] in self.file_types:
-            return self.file_types[file_name[-5:]]
-        else:
-            return self.file_types[file_name[-3:]]
+    @staticmethod
+    def image_filename_to_segmentation_filename(image_filename):
+        return re.sub(r'\.jpg$', '_seg.png', image_filename)
 
 
-training = ADE20K(TRAINING_DATA_DIRECTORY, 20210)
-validation = ADE20K(VALIDATION_DATA_DIRECTORY, 2000)
-
-
-def read_and_decode_jpg(filename_queue):
+def read_and_decode_image_file(filename_queue):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value)
-    image = resize(image)
+    shape = tf.shape(image)
+    image = tf.cond(shape[0] < shape[1], lambda: tf.image.transpose_image(image), lambda: image)
     return tf.cast(image, dtype=tf.float32)
 
 
-def read_and_decode_png(filename_queue):
+def read_and_decode_segmentation_file(filename_queue):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_png(value)
-    image = resize(image)
+    shape = tf.shape(image)
+    image = tf.cond(shape[0] < shape[1], lambda: tf.image.transpose_image(image), lambda: image)
     return tf.cast(image, dtype=tf.float32)
 
 
-def decode_class_mask(image):
-    return image[:, :, 0] / 10 * 256 + image[:, :, 1]
+def decode_class_mask(im):
+    labels = (im[:, :, 0] // 10) * 256 + im[:, :, 1]
+    tf.expand_dims(labels, axis=2)
+    return tf.cast(labels, dtype=tf.int32)
 
 
-def decode_instance_mask(image):
-    return tf.unique(image[:, :, 2])[1]
+def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2):
+    image_filename_queue = tf.train.string_input_producer(
+        tf.constant(ade20k.image_full_paths), num_epochs=num_epochs, shuffle=False)
 
+    segmentation_filename_queue = tf.train.string_input_producer(
+        tf.constant(ade20k.segmentation_full_paths), num_epochs=num_epochs, shuffle=False)
 
-def resize(image):
-    image = tf.image.resize_images(image, [IMAGE_WIDTH, IMAGE_WIDTH])
-    image.set_shape([IMAGE_WIDTH, IMAGE_WIDTH, 3])
-    return image
+    input_image_data = read_and_decode_image_file(image_filename_queue)
+    segmentation_data = read_and_decode_segmentation_file(segmentation_filename_queue)
+    input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
+                                                             name='crop_image_with_labels', )
 
-
-def input_pipeline(dataset, num_epochs=500, batch_size=100):
-    input_filename_queue = tf.train.string_input_producer(
-        tf.constant(dataset.scenes[:, 0]), num_epochs=num_epochs)
-
-    segment_filename_queue = tf.train.string_input_producer(
-        tf.constant(dataset.scenes[:, 1]), num_epochs=num_epochs)
-
-    input_image_data = read_and_decode_jpg(input_filename_queue)
-    segment_image_data = read_and_decode_png(segment_filename_queue)
-
-    segment_class_mask = decode_class_mask(segment_image_data)
-    # segment_instance_mask = decode_instance_mask(segment_image_data)
-
-    min_after_dequeue = 250
-    capacity = min_after_dequeue + 3 * batch_size
-
+    min_after_dequeue = batch_size * 2
+    capacity = batch_size * 4
+    decoded_segmentation_data = decode_class_mask(segmentation_data)
     input_batch, segment_batch = tf.train.shuffle_batch(
-        [input_image_data, segment_class_mask], batch_size=batch_size, capacity=capacity,
+        [input_image_data, decoded_segmentation_data], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
 
     return input_batch, segment_batch
+
+
+def get_pipeline(batch_size, image_dimensions):
+    ade20k = ADE20K()
+    return input_pipeline(ade20k, image_dimensions, batch_size=batch_size)
+
+
+def double_random_crop(image_1, image_2, size, seed=None, name=None):
+    size = (size[0], size[1], 3)
+    with tf.variable_scope(name, "double_random_crop", [image_1, image_2, size]):
+        image_tensor_1 = tf.convert_to_tensor(image_1, name="image_1")
+        image_tensor_2 = tf.convert_to_tensor(image_2, name="image_2")
+        size = tf.convert_to_tensor(size, dtype=tf.int32, name="size")
+        shape_1 = tf.shape(image_tensor_1)
+        shape_2 = tf.shape(image_tensor_2)
+        check_shape = tf.assert_equal(shape_1, shape_2, ["Need same sized images"])
+        check = tf.Assert(
+            tf.reduce_all(shape_1 >= size),
+            ["Need value.shape >= size, got ", shape_1, size])
+        with tf.control_dependencies([check, check_shape]):
+            shape = shape_1
+            limit = shape - size + 1
+            offset = tf.random_uniform(
+                tf.shape(shape),
+                dtype=size.dtype,
+                maxval=size.dtype.max,
+                seed=seed) % limit
+            sliced_image_1 = tf.slice(image_tensor_1, offset, size, name="double_random_crop_1")
+            sliced_image_2 = tf.slice(image_tensor_2, offset, size, name="double_random_crop_2")
+            return sliced_image_1, sliced_image_2
