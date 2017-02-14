@@ -49,3 +49,6 @@ android/gradleBuild/
 android/assets/*
 
 *pyc
+
+classifier/summaries/*
+classifier/checkpoints/*
