@@ -3,20 +3,22 @@ import tensorflow as tf
 from internal_logger import logger
 from model import PVANet
 
+from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE
+
 CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'
 CHECKPOINT_STEP = 20
 
 
 class Train:
-    def __init__(self, image_dimensions=(256, 192), batch_size=2):
+    def __init__(self, image_dimensions=(256, 192), batch_size=50):
         self.image_dimensions = image_dimensions
         self.batch_size = batch_size
-        self.model = PVANet(training=True, batch_size=2, image_dimensions=image_dimensions)
-        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=1)
-        # gpu_options = tf.GPUOptions()
-        # self.sess = tf.Session(graph=self.model.graph, config=tf.ConfigProto(gpu_options=gpu_options))
-        self.sess = tf.Session(graph=self.model.graph)
+        self.model = PVANet(training=True, batch_size=self.batch_size, image_dimensions=image_dimensions)
+
+        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.5)
+        self.sess = tf.Session(graph=self.model.graph, config=tf.ConfigProto(gpu_options=gpu_options))
+        # self.sess = tf.Session(graph=self.model.graph)
 
     def train(self):
         with self.model.graph.as_default():
@@ -67,5 +69,5 @@ class Train:
 
 
 if __name__ == '__main__':
-    t = Train()
+    t = Train(image_dimensions=(IMAGE_HEIGHT, IMAGE_WIDTH), batch_size=BATCH_SIZE)
     t.train()

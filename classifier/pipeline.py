@@ -1,29 +1,22 @@
 import re
-from collections import namedtuple
 
 import tensorflow as tf
-from scipy.io import loadmat
 
 from settings import *
 
 
 class ADE20K:
     def __init__(self):
-        mat = loadmat(ADE_20K_MAT_FILE, squeeze_me=True)
-        index = mat['index']
-        ade20k_index = namedtuple('Ade20kIndex', index.dtype.names)
-        for name in index.dtype.names:
-            setattr(self, name, index[name][()])
-        self.index = ade20k_index(
-            **{name: index[name][()] for name in index.dtype.names})
-        self.image_full_paths = self.get_image_filenames()
-        self.segmentation_full_paths = self.get_segmentation_filenames(self.image_full_paths)
-
-    def get_image_filenames(self):
-        return map(lambda (folder, filename): DATA_DIRECTORY + '/' +
-                                              folder + '/' +
-                                              filename,
-                   zip(self.index.folder, self.index.filename))
+        training_indices = file('training_index', 'r')
+        self.image_full_paths = [''] * 20210
+        self.segmentation_full_paths = [''] * 20210
+        count = 0
+        for line in training_indices:
+            stripped_line = line.strip()
+            self.image_full_paths[count] = DATA_DIRECTORY + '/' + stripped_line
+            self.segmentation_full_paths[count] = DATA_DIRECTORY + '/' + \
+                                                  self.image_filename_to_segmentation_filename(stripped_line)
+            count += 1
 
     @staticmethod
     def get_segmentation_filenames(full_paths):

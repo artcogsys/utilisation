@@ -17,7 +17,8 @@ class PVANet():
     def make_graph(self):
         with self.graph.as_default():
             if self.training:
-                self.input, self.truth = get_pipeline(batch_size=self.batch_size,)
+                self.input, self.truth = get_pipeline(batch_size=self.batch_size,
+                                                      image_dimensions=self.image_dimensions)
             else:
                 self.input = tf.placeholder(tf.float32,
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
@@ -80,8 +81,8 @@ class PVANet():
                 deconvolution_filter = create_weights('deconvolution_filter', [4, 4, 384, 384])
                 conv_5_4_scaled = tf.nn.conv2d_transpose(conv_5_4, deconvolution_filter,
                                                          [self.batch_size,
-                                                          tf.shape(conv_5_4)[1]*2,
-                                                          tf.shape(conv_5_4)[2]*2,
+                                                          tf.shape(conv_5_4)[1] * 2,
+                                                          tf.shape(conv_5_4)[2] * 2,
                                                           384], strides=[1, 2, 2, 1])
                 conv_concat = tf.concat(3, [conv_3_4_scaled, conv_5_4_scaled, conv_4_4])
             with tf.variable_scope('feature_scale_1'):
@@ -99,6 +100,3 @@ class PVANet():
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)
                 self.optimizer = tf.train.AdadeltaOptimizer().minimize(self.loss, global_step=self.global_step)
             tf.summary.scalar("loss", self.loss)
-
-
-PVANet()
