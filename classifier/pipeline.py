@@ -8,8 +8,8 @@ from settings import *
 class ADE20K:
     def __init__(self):
         training_indices = file('training_index', 'r')
-        self.image_full_paths = [''] * 20210
-        self.segmentation_full_paths = [''] * 20210
+        self.image_full_paths = [''] * 20182
+        self.segmentation_full_paths = [''] * 20182
         count = 0
         for line in training_indices:
             stripped_line = line.strip()
