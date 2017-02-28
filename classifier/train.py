@@ -22,18 +22,19 @@ class Train:
 
     def train(self):
         with self.model.graph.as_default():
-            self.sess.run(tf.local_variables_initializer())
+            self.sess.run(tf.variables_initializer(tf.local_variables()))
             merged = tf.summary.merge_all()
             train_writer = tf.summary.FileWriter("summaries", t.model.graph)
-            saver = tf.train.Saver()
+            saver = tf.train.Saver(max_to_keep=5)
 
             latest_checkpoint = tf.train.latest_checkpoint(CHECKPOINT_FOLDER)
+            self.sess.run(tf.variables_initializer(tf.local_variables()))
             if latest_checkpoint:
                 self.log("loading from checkpoint file: " + latest_checkpoint)
                 saver.restore(self.sess, latest_checkpoint)
             else:
                 self.log("checkpoint not found, initializing variables.")
-            self.sess.run(tf.global_variables_initializer())
+                self.sess.run(tf.variables_initializer(tf.global_variables()))
 
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=self.sess, coord=coord)

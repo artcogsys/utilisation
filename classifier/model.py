@@ -87,7 +87,7 @@ class PVANet():
                                                           tf.shape(conv_5_4)[1] * 2,
                                                           tf.shape(conv_5_4)[2] * 2,
                                                           384], strides=[1, 2, 2, 1])
-                conv_concat = tf.concat(3, [conv_3_4_scaled, conv_5_4_scaled, conv_4_4])
+                conv_concat = tf.concat([conv_3_4_scaled, conv_5_4_scaled, conv_4_4], 3)
             with tf.variable_scope('feature_scale_1'):
                 conv_concat = relu_fc(conv_concat, 768, self.num_output_classes)
             with tf.variable_scope('feature_scale_2'):

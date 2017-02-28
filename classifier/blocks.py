@@ -19,7 +19,7 @@ def relu_conv2d(input_layer, filter_shape, stride=1, mcrelu=False):
 def normalized_relu_activation(input_layer, output_size, negative_concatenation=False):
     l = batch_normalization(input_layer)
     if negative_concatenation:
-        l = tf.concat(3, [l, -1 * l])
+        l = tf.concat([l, -1 * l], 3)
         output_size *= 2
     l = add_bias(l, output_size)
     return tf.nn.relu(l)
@@ -88,7 +88,7 @@ def residual_inception(input_layer, input_channels, output_channels_list, stride
     with tf.variable_scope('inception_3_3'):
         inception_3 = relu_conv2d(inception_3_2, [3, 3, output_channels_list[4], output_channels_list[5]], stride=1)
     with tf.variable_scope('result'):
-        result = tf.concat(3, [inception_1, inception_2, inception_3])
+        result = tf.concat([inception_1, inception_2, inception_3], 3)
 
     total_number_of_channels = output_channels_list[0] + output_channels_list[2] + output_channels_list[5]
 
@@ -99,7 +99,7 @@ def residual_inception(input_layer, input_channels, output_channels_list, stride
         with tf.variable_scope('inception_4_2'):
             inception_4 = relu_conv2d(inception_4_1, [1, 1, input_channels, output_channels_list[6]], stride=1)
         with tf.variable_scope('result_2'):
-            result = tf.concat(3, [result, inception_4])
+            result = tf.concat([result, inception_4], 3)
             total_number_of_channels += output_channels_list[6]
 
     with tf.variable_scope('inception_downsample'):
