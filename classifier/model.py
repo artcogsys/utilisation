@@ -93,8 +93,6 @@ class PVANet():
             with tf.variable_scope('error'):
                 one_hot_encoded_truth = tf.one_hot(tf.cast(self.truth, tf.int32), self.num_output_classes)
                 one_hot_encoded_truth = tf.squeeze(one_hot_encoded_truth)
-                averaged_truth = tf.nn.avg_pool(one_hot_encoded_truth, [1, 16, 16, 1], [1, 16, 16, 1], padding="SAME")
-                self.loss = tf.nn.softmax_cross_entropy_with_logits(self.results, averaged_truth, 2)
 
             with tf.variable_scope('gradient'):
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)

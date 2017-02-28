@@ -62,10 +62,13 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2):
     segmentation_data = read_and_decode_segmentation_file(segmentation_filename_queue)
     input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
                                                              name='crop_image_with_labels', )
+    resized_segmentation_data = tf.image.resize_images(segmentation_data,
+                                                       [image_dimensions[0] / 16, image_dimensions[1] / 16],
+                                                       tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
     min_after_dequeue = batch_size * 2
     capacity = batch_size * 4
-    decoded_segmentation_data = decode_class_mask(segmentation_data)
+    decoded_segmentation_data = decode_class_mask(resized_segmentation_data)
     input_batch, segment_batch = tf.train.shuffle_batch(
         [input_image_data, decoded_segmentation_data], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
