@@ -47,11 +47,11 @@ def read_and_decode_segmentation_file(filename_queue):
 
 def decode_class_mask(im):
     labels = (im[:, :, 0] // 10) * 256 + im[:, :, 1]
-    tf.expand_dims(labels, axis=2)
+    # tf.expand_dims(labels, axis=2)
     return tf.cast(labels, dtype=tf.int32)
 
 
-def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2):
+def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class_embeddings=None):
     image_filename_queue = tf.train.string_input_producer(
         tf.constant(ade20k.image_full_paths), num_epochs=num_epochs, shuffle=False)
 
@@ -61,7 +61,7 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2):
     input_image_data = read_and_decode_image_file(image_filename_queue)
     segmentation_data = read_and_decode_segmentation_file(segmentation_filename_queue)
     input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
-                                                             name='crop_image_with_labels', )
+                                                             name='crop_image_with_labels')
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
                                                        tf.image.ResizeMethod.NEAREST_NEIGHBOR)
@@ -69,16 +69,21 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2):
     min_after_dequeue = batch_size * 2
     capacity = batch_size * 4
     decoded_segmentation_data = decode_class_mask(resized_segmentation_data)
+
+    if class_embeddings is not None:
+        decoded_segmentation_data = tf.nn.embedding_lookup(class_embeddings, decoded_segmentation_data)
+
     input_batch, segment_batch = tf.train.shuffle_batch(
         [input_image_data, decoded_segmentation_data], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
-
     return input_batch, segment_batch
 
 
-def get_pipeline(batch_size, image_dimensions):
+def get_pipeline(batch_size, image_dimensions, class_embeddings):
     ade20k = ADE20K()
-    return input_pipeline(ade20k, image_dimensions, batch_size=batch_size)
+    if class_embeddings is not None:
+        class_embeddings = tf.constant(class_embeddings)
+    return input_pipeline(ade20k, image_dimensions, batch_size=batch_size, class_embeddings=class_embeddings)
 
 
 def double_random_crop(image, segmentation_image, size, seed=None, name=None):

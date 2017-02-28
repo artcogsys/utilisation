@@ -1,9 +1,9 @@
 import tensorflow as tf
 
+from class_embeddings import class_embedding_lookup_table
 from internal_logger import logger
 from model import PVANet
-
-from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE
+from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE, NUM_OUTPUT_CLASSES, MAX_CLASS_ID
 
 CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'
@@ -14,11 +14,17 @@ class Train:
     def __init__(self, image_dimensions=(256, 192), batch_size=50):
         self.image_dimensions = image_dimensions
         self.batch_size = batch_size
-        self.model = PVANet(training=True, batch_size=self.batch_size, image_dimensions=image_dimensions)
+        self.model = PVANet(training=True,
+                            batch_size=self.batch_size,
+                            image_dimensions=image_dimensions,
+                            num_output_classes=MAX_CLASS_ID,
+                            class_embeddings=None)
 
-        gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.5)
-        self.sess = tf.Session(graph=self.model.graph, config=tf.ConfigProto(gpu_options=gpu_options))
-        # self.sess = tf.Session(graph=self.model.graph)
+        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.5)
+        # self.sess = tf.Session(graph=self.model.graph,
+        #                        config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=True))
+
+        self.sess = tf.Session(graph=self.model.graph)
 
     def train(self):
         with self.model.graph.as_default():

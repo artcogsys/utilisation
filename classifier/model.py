@@ -5,21 +5,25 @@ from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, 
 from pipeline import get_pipeline
 
 
-class PVANet():
-    def __init__(self, batch_size=2, image_dimensions=(256, 192), num_output_classes=3148, training=False):
+class PVANet:
+    def __init__(self, batch_size=2, image_dimensions=(256, 192), num_output_classes=3148, training=False,
+                 class_embeddings=None):
         self.training = training
         self.num_output_classes = num_output_classes
         self.graph = tf.Graph()
 
         self.batch_size = batch_size
         self.image_dimensions = image_dimensions
+        self.class_embeddings = class_embeddings
+
         self.make_graph()
 
     def make_graph(self):
         with self.graph.as_default():
             if self.training:
                 self.input, self.truth = get_pipeline(batch_size=self.batch_size,
-                                                      image_dimensions=self.image_dimensions)
+                                                      image_dimensions=self.image_dimensions,
+                                                      class_embeddings=self.class_embeddings)
             else:
                 self.input = tf.placeholder(tf.float32,
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
@@ -97,7 +101,17 @@ class PVANet():
                 one_hot_encoded_truth = tf.one_hot(tf.cast(self.truth, tf.int32), self.num_output_classes)
                 one_hot_encoded_truth = tf.squeeze(one_hot_encoded_truth)
 
+                one_hot_encoded_truth = tf.Print(one_hot_encoded_truth, [tf.reduce_sum(one_hot_encoded_truth),
+                                                                         tf.reduce_min(self.results),
+                                                                         tf.reduce_max(self.results)],
+                                                 'sum avg truth, logits min, max ')
+                self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.results,
+                                                                                   labels=one_hot_encoded_truth))
+                # self.loss = tf.reduce_sum(tf.square(tf.nn.softmax(self.results) - one_hot_encoded_truth))
+                tf.summary.scalar("loss", self.loss)
+                self.loss = tf.Print(self.loss, [self.loss], 'loss')
+
             with tf.variable_scope('gradient'):
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)
-                self.optimizer = tf.train.AdadeltaOptimizer().minimize(self.loss, global_step=self.global_step)
-            tf.summary.scalar("loss", self.loss)
+                # self.optimizer = tf.train.AdadeltaOptimizer().minimize(self.loss, global_step=self.global_step)
+                self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001).minimize(self.loss, global_step=self.global_step)
