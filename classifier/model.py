@@ -27,8 +27,10 @@ class PVANet():
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], 1))
                 # tf.summary.image('input image', self.input)
                 # tf.summary.image('truth image', self.truth)
+            with tf.variable_scope('pre_processing'):
+                pre_processed_input = batch_normalization(self.input)
             with tf.variable_scope('conv_1'):
-                conv_1_1 = relu_conv2d(self.input, [7, 7, 3, 16], stride=2, mcrelu=True)
+                conv_1_1 = relu_conv2d(pre_processed_input, [7, 7, 3, 16], stride=2, mcrelu=True)
             with tf.variable_scope('pool_1'):
                 pool_1_1 = tf.nn.max_pool(conv_1_1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
 
