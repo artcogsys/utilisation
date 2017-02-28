@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, conv2d, create_weights
+from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc, \
+    relu_fc, batch_normalization
 from pipeline import get_pipeline
 
 
@@ -86,9 +87,9 @@ class PVANet():
                                                           384], strides=[1, 2, 2, 1])
                 conv_concat = tf.concat(3, [conv_3_4_scaled, conv_5_4_scaled, conv_4_4])
             with tf.variable_scope('feature_scale_1'):
-                conv_concat = conv2d(conv_concat, [1, 1, 768, self.num_output_classes])
+                conv_concat = relu_fc(conv_concat, 768, self.num_output_classes)
             with tf.variable_scope('feature_scale_2'):
-                self.results = conv2d(conv_concat, [1, 1, self.num_output_classes, self.num_output_classes])
+                self.results = fc(conv_concat, self.num_output_classes, self.num_output_classes)
 
             with tf.variable_scope('error'):
                 one_hot_encoded_truth = tf.one_hot(tf.cast(self.truth, tf.int32), self.num_output_classes)

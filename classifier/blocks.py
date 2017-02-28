@@ -114,3 +114,17 @@ def residual_inception(input_layer, input_channels, output_channels_list, stride
 def global_avg_pool(input_layer):  # resnet method
     assert input_layer.get_shape().ndims == 4
     return tf.reduce_mean(input_layer, [1, 2])
+
+
+def fc(input_layer, input_channels, output_channels):
+    weights = create_weights('fc_weights', [input_channels, output_channels])
+    shape = tf.shape(input_layer)
+    flattened_input = tf.reshape(input_layer, [-1, input_channels])
+    pre_bias = tf.matmul(flattened_input, weights)
+    result = add_bias(pre_bias, output_channels)
+    new_shape = tf.stack([shape[0], shape[1], shape[2], output_channels])
+    return tf.reshape(result, new_shape)
+
+
+def relu_fc(input_layer, input_channels, output_channels):
+    return tf.nn.relu(fc(input_layer, input_channels, output_channels))
