@@ -78,14 +78,14 @@ def get_pipeline(batch_size, image_dimensions):
     return input_pipeline(ade20k, image_dimensions, batch_size=batch_size)
 
 
-def double_random_crop(image_1, image_2, size, seed=None, name=None):
+def double_random_crop(image, segmentation_image, size, seed=None, name=None):
     size = (size[0], size[1], 3)
-    with tf.variable_scope(name, "double_random_crop", [image_1, image_2, size]):
-        image_tensor_1 = tf.convert_to_tensor(image_1, name="image_1")
-        image_tensor_2 = tf.convert_to_tensor(image_2, name="image_2")
+    with tf.variable_scope(name, "double_random_crop", [image, segmentation_image, size]):
+        image_tensor = tf.convert_to_tensor(image, name="image_tensor")
+        segmentation_image_tensor = tf.convert_to_tensor(segmentation_image, name="segmentation_image_tensor")
         size = tf.convert_to_tensor(size, dtype=tf.int32, name="size")
-        shape_1 = tf.shape(image_tensor_1)
-        shape_2 = tf.shape(image_tensor_2)
+        shape_1 = tf.shape(image_tensor)
+        shape_2 = tf.shape(segmentation_image_tensor)
         check_shape = tf.assert_equal(shape_1, shape_2, ["Need same sized images"])
         check = tf.Assert(
             tf.reduce_all(shape_1 >= size),
@@ -98,6 +98,7 @@ def double_random_crop(image_1, image_2, size, seed=None, name=None):
                 dtype=size.dtype,
                 maxval=size.dtype.max,
                 seed=seed) % limit
-            sliced_image_1 = tf.slice(image_tensor_1, offset, size, name="double_random_crop_1")
-            sliced_image_2 = tf.slice(image_tensor_2, offset, size, name="double_random_crop_2")
+            sliced_image_1 = tf.slice(image_tensor, offset, size, name="double_random_crop_image")
+            sliced_image_2 = tf.slice(segmentation_image_tensor, offset, size, name="double_random_crop_segmentation")
+
             return sliced_image_1, sliced_image_2
