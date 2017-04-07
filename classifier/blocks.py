@@ -27,9 +27,9 @@ def normalized_relu_activation(input_layer, output_size, negative_concatenation=
 
 def batch_normalization(layer):
     mean = tf.Variable(initial_value=.0, trainable=True)
-    variance = tf.Variable(initial_value=.0, trainable=True)
+    variance = tf.Variable(initial_value=1., trainable=True)
     offset = tf.Variable(initial_value=.0, trainable=True)
-    scale = tf.Variable(initial_value=.0, trainable=True)
+    scale = tf.Variable(initial_value=1., trainable=True)
     variance_epsilon = tf.Variable(initial_value=1e-7, trainable=True)
     # @TODO: check how to implement caffe's batch_norm.use_global_stats=True
     return tf.nn.batch_normalization(layer, mean, variance, offset, scale, variance_epsilon)
