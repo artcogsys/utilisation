@@ -54,7 +54,7 @@ class Train:
                          self.model.loss,
                          self.model.global_step])
 
-                    train_writer.add_summary(m)
+                    train_writer.add_summary(m, step)
                     avg_loss += (loss / float(CHECKPOINT_STEP))
                     if step % CHECKPOINT_STEP == 0:
                         self.log("past %d runs avg_loss: %.2f" % \
