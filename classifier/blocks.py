@@ -96,16 +96,18 @@ def residual_inception(input_layer, input_channels, output_channels_list, stride
         with tf.variable_scope('inception_4_1'):
             inception_4_1 = tf.nn.max_pool(activated_input_layer, ksize=[1, 3, 3, 1], strides=[1, stride, stride, 1],
                                            padding="SAME")
+            inception_4_1 = batch_normalization(inception_4_1)
         with tf.variable_scope('inception_4_2'):
             inception_4 = relu_conv2d(inception_4_1, [1, 1, input_channels, output_channels_list[6]], stride=1)
         with tf.variable_scope('result_2'):
             result = tf.concat([result, inception_4], 3)
             total_number_of_channels += output_channels_list[6]
-
+    result = batch_normalization(result)
     with tf.variable_scope('inception_downsample'):
         downsampled_result = conv2d(result, [1, 1, total_number_of_channels, output_channels_list[7]], stride=1)
     with tf.variable_scope('batch_normalization'):
         scaled_input_layer = scale_residual_input(input_layer, input_channels, output_channels_list[7], stride=stride)
+        scaled_input_layer = batch_normalization(scaled_input_layer)
     with tf.variable_scope('residual_connetion'):
         output_layer = residual_connection(scaled_input_layer, downsampled_result)
     return output_layer
@@ -122,6 +124,7 @@ def fc(input_layer, input_channels, output_channels):
     flattened_input = tf.reshape(input_layer, [-1, input_channels])
     pre_bias = tf.matmul(flattened_input, weights)
     result = add_bias(pre_bias, output_channels)
+    result = batch_normalization(result)
     new_shape = tf.stack([shape[0], shape[1], shape[2], output_channels])
     return tf.reshape(result, new_shape)
 
