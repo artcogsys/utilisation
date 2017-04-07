@@ -31,7 +31,7 @@ class Train:
             self.sess.run(tf.variables_initializer(tf.local_variables()))
             merged = tf.summary.merge_all()
             train_writer = tf.summary.FileWriter("summaries", t.model.graph)
-            saver = tf.train.Saver(max_to_keep=5)
+            saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
 
             latest_checkpoint = tf.train.latest_checkpoint(CHECKPOINT_FOLDER)
             self.sess.run(tf.variables_initializer(tf.local_variables()))
