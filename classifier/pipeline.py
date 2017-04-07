@@ -67,17 +67,33 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
                                                        tf.image.ResizeMethod.NEAREST_NEIGHBOR)
 
-    min_after_dequeue = batch_size * 2
-    capacity = batch_size * 4
+    min_after_dequeue = int(batch_size * 1.5)
+    capacity = batch_size * 3
     decoded_segmentation_data = decode_class_mask(resized_segmentation_data)
 
     if class_embeddings is not None:
         decoded_segmentation_data = tf.nn.embedding_lookup(class_embeddings, decoded_segmentation_data)
 
+    one_hot_encoded_truth = regularize_truth(tf.one_hot(tf.cast(decoded_segmentation_data, tf.int32), MAX_CLASS_ID))
+
     input_batch, segment_batch = tf.train.shuffle_batch(
-        [input_image_data, decoded_segmentation_data], batch_size=batch_size, capacity=capacity,
+        [input_image_data, one_hot_encoded_truth], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
     return input_batch, segment_batch
+
+def regularize_truth(truth):
+    epsilon = tf.constant(0.1)
+    ###
+    # Label Smoothing Regularization from https://arxiv.org/pdf/1512.00567.pdf
+    # q' = (1 - \epsilon) * q + \epsilon / K
+    # where;
+    #  q is the distribution to regularize,
+    #  q' is the regularized label,
+    #  K is the uniform prior distribution,
+    #  \epsilon is the smoothing parameter.
+    # we do this to fight imbalanced data
+    ###
+    return (1 - epsilon) * truth + epsilon / MAX_CLASS_ID
 
 
 def get_pipeline(batch_size, image_dimensions, class_embeddings):

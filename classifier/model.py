@@ -98,20 +98,17 @@ class PVANet:
                 self.results = fc(conv_concat, self.num_output_classes, self.num_output_classes)
 
             with tf.variable_scope('error'):
-                one_hot_encoded_truth = tf.one_hot(tf.cast(self.truth, tf.int32), self.num_output_classes)
-                one_hot_encoded_truth = tf.squeeze(one_hot_encoded_truth)
 
-                one_hot_encoded_truth = tf.Print(one_hot_encoded_truth, [tf.reduce_sum(one_hot_encoded_truth),
-                                                                         tf.reduce_min(self.results),
-                                                                         tf.reduce_max(self.results)],
-                                                 'sum avg truth, logits min, max ')
-                self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.results,
-                                                                                   labels=one_hot_encoded_truth))
-                # self.loss = tf.reduce_sum(tf.square(tf.nn.softmax(self.results) - one_hot_encoded_truth))
-                tf.summary.scalar("loss", self.loss)
-                self.loss = tf.Print(self.loss, [self.loss], 'loss')
+                self.logits = feature_scale_2
+                self.results = tf.nn.softmax(self.logits)
 
-            with tf.variable_scope('gradient'):
+                # regularized_truth = tf.Print(self.truth, [tf.reduce_sum(self.truth),
+                #                                                  tf.reduce_min(self.logits),
+                #                                                  tf.reduce_max(self.logits)],
+                #                              'sum smoothened truth, logits min, max ')
+
+                self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
+                                                                                   labels=self.truth))
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)
                 # self.optimizer = tf.train.AdadeltaOptimizer().minimize(self.loss, global_step=self.global_step)
                 self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001).minimize(self.loss, global_step=self.global_step)
