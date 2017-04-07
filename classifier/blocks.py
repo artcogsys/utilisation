@@ -17,12 +17,12 @@ def relu_conv2d(input_layer, filter_shape, stride=1, mcrelu=False):
 
 
 def normalized_relu_activation(input_layer, output_size, negative_concatenation=False):
-    l = batch_normalization(input_layer)
     if negative_concatenation:
-        l = tf.concat([l, -1 * l], 3)
+        input_layer = tf.concat([input_layer, -1 * input_layer], 3)
         output_size *= 2
-    l = add_bias(l, output_size)
-    return tf.nn.relu(l)
+    input_layer = add_bias(input_layer, output_size)
+    input_layer = batch_normalization(input_layer)
+    return tf.nn.relu(input_layer)
 
 
 def batch_normalization(layer):
