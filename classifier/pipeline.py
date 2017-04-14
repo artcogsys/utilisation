@@ -33,6 +33,8 @@ def read_and_decode_image_file(filename_queue):
     image = tf.image.decode_jpeg(value)
     shape = tf.shape(image)
     image = tf.cond(shape[1] < shape[0], lambda: tf.image.transpose_image(image), lambda: image)
+    image = tf.image.resize_images(image, size=[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
+                                   method=ResizeMethod.BILINEAR)
     image = tf.image.per_image_standardization(image)
     return tf.cast(image, dtype=tf.float32)
 
@@ -43,6 +45,9 @@ def read_and_decode_segmentation_file(filename_queue):
     image = tf.image.decode_png(value)
     shape = tf.shape(image)
     image = tf.cond(shape[1] < shape[0], lambda: tf.image.transpose_image(image), lambda: image)
+    image = tf.image.resize_images(image, size=[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
+                                   method=ResizeMethod.NEAREST_NEIGHBOR)
+
     return tf.cast(image, dtype=tf.float32)
 
 
