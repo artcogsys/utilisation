@@ -81,9 +81,11 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class
 
     one_hot_encoded_truth = regularize_truth(tf.one_hot(tf.cast(decoded_segmentation_data, tf.int32), MAX_CLASS_ID))
 
-    input_batch, segment_batch = tf.train.shuffle_batch(
-        [input_image_data, one_hot_encoded_truth], batch_size=batch_size, capacity=capacity,
+    input_batch, segment_batch, resized_segmentation_data_batch = tf.train.shuffle_batch(
+        [input_image_data, one_hot_encoded_truth, resized_segmentation_data], batch_size=batch_size, capacity=capacity,
         min_after_dequeue=min_after_dequeue)
+    tf.summary.image('input', input_batch, max_outputs=2)
+    tf.summary.image('segmentation', resized_segmentation_data_batch, max_outputs=2)
     return input_batch, segment_batch
 
 def regularize_truth(truth):
