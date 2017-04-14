@@ -1,6 +1,7 @@
 import re
 
 import tensorflow as tf
+from tensorflow.python.ops.image_ops_impl import ResizeMethod
 
 from settings import *
 
@@ -15,6 +16,17 @@ class ADE20K:
             stripped_line = line.strip()
             self.image_full_paths[count] = DATA_DIRECTORY + '/' + stripped_line
             self.segmentation_full_paths[count] = DATA_DIRECTORY + '/' + \
+                                                  self.image_filename_to_segmentation_filename(stripped_line)
+            count += 1
+
+        validation_indices = file('validation_index', 'r')
+        self.validation_image_full_paths = [''] * 2000
+        self.validation_segmentation_full_paths = [''] * 2000
+        count = 0
+        for line in validation_indices:
+            stripped_line = line.strip()
+            self.validation_image_full_paths [count] = DATA_DIRECTORY + '/' + stripped_line
+            self.validation_segmentation_full_paths[count] = DATA_DIRECTORY + '/' + \
                                                   self.image_filename_to_segmentation_filename(stripped_line)
             count += 1
 
@@ -58,20 +70,21 @@ def decode_class_mask(im):
 
 
 def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class_embeddings=None):
+
     image_filename_queue = tf.train.string_input_producer(
         tf.constant(ade20k.image_full_paths), num_epochs=num_epochs, shuffle=False)
-
     segmentation_filename_queue = tf.train.string_input_producer(
         tf.constant(ade20k.segmentation_full_paths), num_epochs=num_epochs, shuffle=False)
 
     input_image_data = read_and_decode_image_file(image_filename_queue)
     segmentation_data = read_and_decode_segmentation_file(segmentation_filename_queue)
+
     input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
                                                              name='crop_image_with_labels')
+
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
                                                        tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-
     min_after_dequeue = int(batch_size * 1.5)
     capacity = batch_size * 3
     decoded_segmentation_data = decode_class_mask(resized_segmentation_data)

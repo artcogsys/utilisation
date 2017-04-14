@@ -2,13 +2,15 @@ import tensorflow as tf
 
 from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc, \
     relu_fc
+from clean_pipeline import get_evaluation_pipeline
 from pipeline import get_pipeline
 
 
 class PVANet:
     def __init__(self, batch_size=2, image_dimensions=(256, 192), num_output_classes=3148, training=False,
-                 class_embeddings=None):
+                 evaluation=False, class_embeddings=None):
         self.training = training
+        self.evaluation = evaluation
         self.num_output_classes = num_output_classes
         self.graph = tf.Graph()
 
@@ -21,12 +23,14 @@ class PVANet:
                 self.input, self.truth = get_pipeline(batch_size=self.batch_size,
                                                       image_dimensions=self.image_dimensions,
                                                       class_embeddings=self.class_embeddings)
+            if self.evaluation:
+                self.input, self.truth = get_evaluation_pipeline()
             else:
                 self.input = tf.placeholder(tf.float32,
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
                 self.truth = tf.placeholder(tf.float32,
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], self.num_output_classes))
-                # tf.summary.image('input image', self.input)
+                tf.summary.image('input image', self.input)
                 # tf.summary.image('truth image', self.truth)
             with tf.variable_scope('conv_1'):
                 conv_1_1 = relu_conv2d(self.input, [7, 7, 3, 16], stride=2, mcrelu=True)
@@ -97,17 +101,16 @@ class PVANet:
                                                           tf.shape(conv_5_4)[2] * 2,
                                                           384], strides=[1, 2, 2, 1])
                 conv_concat = tf.nn.relu(tf.concat([conv_3_4_scaled, conv_5_4_scaled, conv_4_4], 3))
-                tf.summary.histogram("conv_concat", conv_concat)
+                # tf.summary.histogram("conv_concat", conv_concat)
             with tf.variable_scope('feature_scale_1'):
-                future_scale_1 = relu_fc(conv_concat, 768, self.num_output_classes)
-                tf.summary.histogram("feature_scale_1", future_scale_1)
+                future_scale_1 = relu_fc(conv_concat, 768, self.num_output_classes*2)
+                # tf.summary.histogram("feature_scale_1", future_scale_1)
             with tf.variable_scope('feature_scale_2'):
-                feature_scale_2 = fc(future_scale_1, self.num_output_classes, self.num_output_classes)
-                tf.summary.histogram("feature_scale_2", feature_scale_2)
+                feature_scale_2 = fc(future_scale_1, self.num_output_classes*2, self.num_output_classes)
+                # tf.summary.histogram("feature_scale_2", feature_scale_2)
             with tf.variable_scope('classification_error'):
-
-
                 self.logits = feature_scale_2
+                _max_logit_value, self.class_ids = tf.nn.top_k(self.logits)
                 self.results = tf.nn.softmax(self.logits)
 
                 # regularized_truth = tf.Print(self.truth, [tf.reduce_sum(self.truth),
@@ -120,7 +123,7 @@ class PVANet:
 
                 # self.loss = tf.reduce_mean(tf.square(self.results - regularized_truth))
                 self.loss = tf.Print(self.loss, [self.loss], 'loss')
-            tf.summary.histogram('output histogram', self.results)
+            # tf.summary.histogram('output histogram', self.results)
             # tf.summary.histogram('truth histogram', regularized_truth)
             tf.summary.scalar("loss", self.loss)
             with tf.variable_scope('classification_gradient'):
