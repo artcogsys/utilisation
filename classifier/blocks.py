@@ -30,7 +30,6 @@ def batch_normalization(layer):
     offset = tf.Variable(initial_value=.0, trainable=True)
     scale = tf.Variable(initial_value=1., trainable=True)
     variance_epsilon = tf.Variable(initial_value=1e-7, trainable=True)
-    # @TODO: check how to implement caffe's batch_norm.use_global_stats=True
     return tf.nn.batch_normalization(layer, mean, variance, offset, scale, variance_epsilon)
 
 
