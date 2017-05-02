@@ -113,7 +113,8 @@ def regularize_truth(truth):
     #  \epsilon is the smoothing parameter.
     # we do this to fight imbalanced data
     ###
-    return (1 - epsilon) * truth + epsilon / MAX_CLASS_ID
+    # return (1 - epsilon) * truth + epsilon / MAX_CLASS_ID
+    return truth
 
 
 def get_pipeline(batch_size, image_dimensions, class_embeddings):
