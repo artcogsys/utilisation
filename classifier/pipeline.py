@@ -8,7 +8,7 @@ from settings import *
 
 class ADE20K:
     def __init__(self):
-        training_indices = file('training_index', 'r')
+        training_indices = file('training_index_shuffled', 'r')
         self.image_full_paths = [''] * 20182
         self.segmentation_full_paths = [''] * 20182
         count = 0
