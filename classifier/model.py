@@ -103,10 +103,10 @@ class PVANet:
                 conv_concat = tf.nn.relu(tf.concat([conv_3_4_scaled, conv_5_4_scaled, conv_4_4], 3))
                 # tf.summary.histogram("conv_concat", conv_concat)
             with tf.variable_scope('feature_scale_1'):
-                future_scale_1 = relu_fc(conv_concat, 768, self.num_output_classes*2)
+                future_scale_1 = relu_conv2d(conv_concat, [1, 1, 768, self.num_output_classes * 2])
                 # tf.summary.histogram("feature_scale_1", future_scale_1)
             with tf.variable_scope('feature_scale_2'):
-                feature_scale_2 = fc(future_scale_1, self.num_output_classes*2, self.num_output_classes)
+                feature_scale_2 = fc(future_scale_1, self.num_output_classes * 2, self.num_output_classes)
                 # tf.summary.histogram("feature_scale_2", feature_scale_2)
             with tf.variable_scope('classification_error'):
                 self.logits = feature_scale_2
