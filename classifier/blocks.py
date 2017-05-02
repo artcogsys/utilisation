@@ -123,7 +123,6 @@ def fc(input_layer, input_channels, output_channels):
     flattened_input = tf.reshape(input_layer, [-1, input_channels])
     pre_bias = tf.matmul(flattened_input, weights)
     result = add_bias(pre_bias, output_channels)
-    result = batch_normalization(result)
     new_shape = tf.stack([shape[0], shape[1], shape[2], output_channels])
     return tf.reshape(result, new_shape)
 
