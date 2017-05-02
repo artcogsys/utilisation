@@ -1,7 +1,6 @@
 import tensorflow as tf
 
-from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc, \
-    relu_fc
+from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc
 from clean_pipeline import get_evaluation_pipeline
 from pipeline import get_pipeline
 

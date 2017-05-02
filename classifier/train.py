@@ -20,9 +20,9 @@ class Train:
                             num_output_classes=MAX_CLASS_ID,
                             class_embeddings=None)
 
-        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.5)
+        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.85)
         # self.sess = tf.Session(graph=self.model.graph,
-        #                        config=tf.ConfigProto(gpu_options=gpu_options, log_device_placement=True))
+        #                        config=tf.ConfigProto(gpu_options=gpu_options))
 
         self.sess = tf.Session(graph=self.model.graph)
 

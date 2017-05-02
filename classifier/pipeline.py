@@ -25,9 +25,9 @@ class ADE20K:
         count = 0
         for line in validation_indices:
             stripped_line = line.strip()
-            self.validation_image_full_paths [count] = DATA_DIRECTORY + '/' + stripped_line
+            self.validation_image_full_paths[count] = DATA_DIRECTORY + '/' + stripped_line
             self.validation_segmentation_full_paths[count] = DATA_DIRECTORY + '/' + \
-                                                  self.image_filename_to_segmentation_filename(stripped_line)
+                                                             self.image_filename_to_segmentation_filename(stripped_line)
             count += 1
 
     @staticmethod
@@ -70,7 +70,6 @@ def decode_class_mask(im):
 
 
 def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class_embeddings=None):
-
     image_filename_queue = tf.train.string_input_producer(
         tf.constant(ade20k.image_full_paths), num_epochs=num_epochs, shuffle=False)
     segmentation_filename_queue = tf.train.string_input_producer(
@@ -100,6 +99,7 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class
     tf.summary.image('input', input_batch, max_outputs=2)
     tf.summary.image('segmentation', resized_segmentation_data_batch, max_outputs=2)
     return input_batch, segment_batch
+
 
 def regularize_truth(truth):
     epsilon = tf.constant(0.1)
