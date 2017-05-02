@@ -85,8 +85,8 @@ def input_pipeline(ade20k, image_dimensions, num_epochs=500, batch_size=2, class
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
                                                        tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    min_after_dequeue = int(batch_size * 1.5)
-    capacity = batch_size * 3
+    min_after_dequeue = 72
+    capacity = 96
     decoded_segmentation_data = decode_class_mask(resized_segmentation_data)
 
     if class_embeddings is not None:
