@@ -23,15 +23,15 @@ class PVANet:
                 self.input, self.truth = get_pipeline(batch_size=self.batch_size,
                                                       image_dimensions=self.image_dimensions,
                                                       class_embeddings=self.class_embeddings)
-            if self.evaluation:
+                tf.summary.image('input image', self.input)
+            elif self.evaluation:
                 self.input, self.truth = get_evaluation_pipeline()
             else:
                 self.input = tf.placeholder(tf.float32,
                                             shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
                 self.truth = tf.placeholder(tf.float32,
-                                            shape=(None, self.image_dimensions[0], self.image_dimensions[1], self.num_output_classes))
-                tf.summary.image('input image', self.input)
-                # tf.summary.image('truth image', self.truth)
+                                            shape=(None, self.image_dimensions[0], self.image_dimensions[1],
+                                                   self.num_output_classes))
             with tf.variable_scope('conv_1'):
                 conv_1_1 = relu_conv2d(self.input, [7, 7, 3, 16], stride=2, mcrelu=True)
                 # tf.summary.histogram("conv_1_1", conv_1_1)
