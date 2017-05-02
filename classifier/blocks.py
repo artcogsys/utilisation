@@ -20,7 +20,6 @@ def normalized_relu_activation(input_layer, output_size, negative_concatenation=
     if negative_concatenation:
         input_layer = tf.concat([input_layer, -1 * input_layer], 3)
         output_size *= 2
-    input_layer = add_bias(input_layer, output_size)
     input_layer = batch_normalization(input_layer)
     return tf.nn.relu(input_layer)
 
