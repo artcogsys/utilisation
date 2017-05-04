@@ -11,7 +11,7 @@ CHECKPOINT_STEP = 1000
 
 
 class Train:
-    def __init__(self, image_dimensions=(256, 192), batch_size=50):
+    def __init__(self, image_dimensions=(192, 128), batch_size=50):
         self.image_dimensions = image_dimensions
         self.batch_size = batch_size
         self.model = PVANet(training=True,
