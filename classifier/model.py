@@ -22,7 +22,7 @@ class PVANet:
                 self.input, self.truth = get_pipeline(batch_size=self.batch_size,
                                                       image_dimensions=self.image_dimensions,
                                                       class_embeddings=self.class_embeddings)
-                tf.summary.image('input image', self.input)
+                # tf.summary.image('input image', self.input)
             elif self.evaluation:
                 self.input, self.truth = get_evaluation_pipeline()
             else:
@@ -117,11 +117,11 @@ class PVANet:
                 #                                                  tf.reduce_max(self.logits)],
                 #                              'sum smoothened truth, logits min, max ')
 
-                self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
-                                                                                   labels=self.truth))
+                self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,
+                                                                                          labels=self.truth))
 
                 # self.loss = tf.reduce_mean(tf.square(self.results - regularized_truth))
-                self.loss = tf.Print(self.loss, [self.loss], 'loss')
+                # self.loss = tf.Print(self.loss, [self.loss], 'loss')
             # tf.summary.histogram('output histogram', self.results)
             # tf.summary.histogram('truth histogram', regularized_truth)
             tf.summary.scalar("loss", self.loss)

@@ -53,3 +53,4 @@ android/assets/*
 classifier/summaries/*
 classifier/checkpoints/*
 classifier/env/
+*.tfrecords
