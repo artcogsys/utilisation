@@ -3,6 +3,7 @@ import tensorflow as tf
 from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc
 from clean_pipeline import get_evaluation_pipeline
 from pipeline import get_pipeline
+from settings import MAX_CLASS_ID
 
 
 class PVANet:
@@ -117,8 +118,8 @@ class PVANet:
                 #                                                  tf.reduce_max(self.logits)],
                 #                              'sum smoothened truth, logits min, max ')
 
-                self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
-                                                                                   labels=self.truth))
+                self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,
+                                                                                          labels=self.truth))
 
                 # self.loss = tf.reduce_mean(tf.square(self.results - regularized_truth))
                 # self.loss = tf.Print(self.loss, [self.loss], 'loss')
