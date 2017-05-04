@@ -22,7 +22,7 @@ class PVANet:
                 self.input, self.truth = get_pipeline(batch_size=self.batch_size,
                                                       image_dimensions=self.image_dimensions,
                                                       class_embeddings=self.class_embeddings)
-                tf.summary.image('input image', self.input)
+                # tf.summary.image('input image', self.input)
             elif self.evaluation:
                 self.input, self.truth = get_evaluation_pipeline()
             else:
