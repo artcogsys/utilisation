@@ -121,7 +121,7 @@ class PVANet:
                                                                                    labels=self.truth))
 
                 # self.loss = tf.reduce_mean(tf.square(self.results - regularized_truth))
-                self.loss = tf.Print(self.loss, [self.loss], 'loss')
+                # self.loss = tf.Print(self.loss, [self.loss], 'loss')
             # tf.summary.histogram('output histogram', self.results)
             # tf.summary.histogram('truth histogram', regularized_truth)
             tf.summary.scalar("loss", self.loss)
