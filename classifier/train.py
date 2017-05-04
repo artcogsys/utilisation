@@ -1,9 +1,8 @@
 import tensorflow as tf
 
-from class_embeddings import class_embedding_lookup_table
 from internal_logger import logger
 from model import PVANet
-from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE, NUM_OUTPUT_CLASSES, MAX_CLASS_ID
+from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE, MAX_CLASS_ID
 
 CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'

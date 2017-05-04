@@ -122,7 +122,6 @@ def double_random_crop(image, segmentation_image, size, seed=None, name=None):
                 maxval=tf.int32.max,
                 minval=0,
                 seed=seed) % limit
-            # offset = tf.Print(offset, [offset])
             sliced_image_1 = tf.slice(image_tensor,
                                       offset,
                                       image_size,
@@ -139,7 +138,6 @@ def single_tf_record_reader(filename_queue):
     _, serialized_example = reader.read(filename_queue)
     features = tf.parse_single_example(
         serialized_example,
-        # Defaults are not specified since both keys are required.
         features={
             'labels': tf.FixedLenFeature([], tf.string),
             'image': tf.FixedLenFeature([], tf.string),
@@ -184,7 +182,7 @@ def get_raw_pipeline(batch_size, num_epochs=500):
 
 
 def regularize_truth(truth):
-    epsilon = tf.constant(0.1)
+    # epsilon = tf.constant(0.1)
     ###
     # Label Smoothing Regularization from https://arxiv.org/pdf/1512.00567.pdf
     # q' = (1 - \epsilon) * q + \epsilon / K
