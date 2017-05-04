@@ -44,7 +44,6 @@ class Train:
 
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=self.sess, coord=coord)
-            avg_loss = .0
             try:
                 while not coord.should_stop():
                     self.log("batch")
@@ -53,15 +52,10 @@ class Train:
                          self.model.optimizer,
                          self.model.loss,
                          self.model.global_step])
-
                     train_writer.add_summary(m, step)
-                    avg_loss += (loss / float(CHECKPOINT_STEP))
                     if step % CHECKPOINT_STEP == 0:
-                        self.log("past %d runs avg_loss: %.2f" % \
-                                 (CHECKPOINT_STEP, avg_loss))
-                        self.log("saved checkpoint at step " + str(step))
-                        avg_loss, avg_pixel_mse, avg_vgg16_mse = .0, .0, .0
                         saver.save(self.sess, CHECKPOINT_FOLDER + '/' + CHECKPOINT_NAME, global_step=step)
+
             except tf.errors.OutOfRangeError:
                 self.log('Done training -- epoch limit reached')
             finally:
