@@ -6,6 +6,10 @@ def create_weights(name, shape):
     return tf.get_variable(name, shape=shape, initializer=xavier_initializer())
 
 
+def create_weights_with_initializer(name, shape, initializer):
+    return tf.get_variable(name, shape=shape, initializer=initializer)
+
+
 def conv2d(input_layer, filter_shape, stride=1):
     filter = create_weights("filter_weights", filter_shape)
     return tf.nn.conv2d(input_layer, filter, strides=[1, stride, stride, 1], padding="SAME")
@@ -25,11 +29,12 @@ def normalized_relu_activation(input_layer, output_size, negative_concatenation=
 
 
 def batch_normalization(layer):
-    mean = tf.Variable(initial_value=.0, trainable=True)
-    variance = tf.Variable(initial_value=1., trainable=True)
-    offset = tf.Variable(initial_value=.0, trainable=True)
-    scale = tf.Variable(initial_value=1., trainable=True)
-    variance_epsilon = tf.Variable(initial_value=1e-7, trainable=True)
+    mean = create_weights_with_initializer("mean", [1], tf.zeros_initializer())
+    variance = create_weights_with_initializer("variance", [1], tf.ones_initializer())
+    offset = create_weights_with_initializer("offset", [1], tf.zeros_initializer())
+    scale = create_weights_with_initializer("scale", [1], tf.ones_initializer())
+    variance_epsilon = create_weights_with_initializer("variance_epsilon", [1], tf.constant_initializer(1e-7))
+
     return tf.nn.batch_normalization(layer, mean, variance, offset, scale, variance_epsilon)
 
 
