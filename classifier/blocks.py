@@ -29,13 +29,10 @@ def normalized_relu_activation(input_layer, output_size, negative_concatenation=
 
 
 def batch_normalization(layer):
-    mean = create_weights_with_initializer("mean", [1], tf.zeros_initializer())
-    variance = create_weights_with_initializer("variance", [1], tf.ones_initializer())
-    offset = create_weights_with_initializer("offset", [1], tf.zeros_initializer())
-    scale = create_weights_with_initializer("scale", [1], tf.ones_initializer())
-    epsilon = create_weights_with_initializer("variance_epsilon", [1], tf.constant_initializer(1e-7))
-
-    return tf.nn.fused_batch_norm(layer, scale, offset, mean, variance, epsilon)
+    with tf.variable_scope("batch_norm"):
+        offset = create_weights("offset", [layer.get_shape()[-1]])
+        scale = create_weights("scale", [layer.get_shape()[-1]])
+        return tf.nn.fused_batch_norm(layer, scale, offset, None, None)[0]
 
 
 def add_bias(layer, number_of_channels):
