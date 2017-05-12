@@ -33,9 +33,9 @@ def batch_normalization(layer):
     variance = create_weights_with_initializer("variance", [1], tf.ones_initializer())
     offset = create_weights_with_initializer("offset", [1], tf.zeros_initializer())
     scale = create_weights_with_initializer("scale", [1], tf.ones_initializer())
-    variance_epsilon = create_weights_with_initializer("variance_epsilon", [1], tf.constant_initializer(1e-7))
+    epsilon = create_weights_with_initializer("variance_epsilon", [1], tf.constant_initializer(1e-7))
 
-    return tf.nn.batch_normalization(layer, mean, variance, offset, scale, variance_epsilon)
+    return tf.nn.fused_batch_norm(layer, scale, offset, mean, variance, epsilon)
 
 
 def add_bias(layer, number_of_channels):
