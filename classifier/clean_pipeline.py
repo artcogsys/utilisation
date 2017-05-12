@@ -13,10 +13,6 @@ def input_evaluation_pipeline(ade20k):
 
     input_image_data = read_and_decode_image_file(image_filename_queue)
     segmentation_data = read_and_decode_segmentation_file(segmentation_filename_queue)
-    shape = tf.shape(input_image_data)
-    new_shape = [(shape[0] / 16) * 16, (shape[1] / 16) * 16]
-    input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, new_shape,
-                                                             name='crop_image_with_labels')
 
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [IMAGE_STANDARDIZATION_HEIGHT / 16,
