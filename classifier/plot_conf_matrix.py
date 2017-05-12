@@ -23,3 +23,5 @@ width, height = conf_arr.shape
 
 cb = plt.colorbar(res)
 plt.show()
+print "press now"
+plt.waitforbuttonpress()
