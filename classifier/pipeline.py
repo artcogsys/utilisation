@@ -39,7 +39,7 @@ class ADE20K:
         return re.sub(r'\.jpg$', '_seg.png', image_filename)
 
 
-def read_and_decode_image_file(filename_queue):
+def read_and_decode_image_file(filename_queue, data_format):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value)
@@ -48,6 +48,10 @@ def read_and_decode_image_file(filename_queue):
     image = tf.image.resize_images(image, size=[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
                                    method=ResizeMethod.BILINEAR)
     image = tf.image.per_image_standardization(image)
+
+    if data_format is "NCHW":
+        image = tf.transpose(image, [2, 0, 1])
+
     return tf.cast(image, dtype=tf.float32)
 
 
@@ -69,27 +73,29 @@ def decode_class_mask(im):
     return tf.cast(labels, dtype=tf.int32)
 
 
-def process_raw_input(input_map, image_dimensions, class_embeddings=None):
+def process_raw_input(input_map, image_dimensions, class_embeddings=None, data_format="NCHW"):
     input_image_data, segmentation_data = input_map
     input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
-                                                             name='crop_image_with_labels')
+                                                             name='crop_image_with_labels', data_format=data_format)
 
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
                                                        tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+
     if class_embeddings is not None:
         resized_segmentation_data = tf.nn.embedding_lookup(class_embeddings, resized_segmentation_data)
     resized_segmentation_data = tf.squeeze(resized_segmentation_data)
     return [input_image_data, resized_segmentation_data]
 
 
-def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500):
+def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500, data_format="NCHW"):
     if class_embeddings is not None:
         class_embeddings = tf.constant(class_embeddings)
-    input_map = raw_tf_record_reader("ade20k.tfrecords", num_epochs)
+    input_map = raw_tf_record_reader("ade20k.tfrecords", num_epochs, data_format)
     input_tensors = process_raw_input(input_map,
                                       image_dimensions,
-                                      class_embeddings=class_embeddings)
+                                      class_embeddings=class_embeddings,
+                                      data_format=data_format)
     min_after_dequeue = 20182 / 2
     capacity = 20182
     return tf.train.shuffle_batch(input_tensors,
@@ -99,19 +105,28 @@ def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500)
                                   num_threads=4)
 
 
-def double_random_crop(image, segmentation_image, size, seed=None, name=None):
+def double_random_crop(image, segmentation_image, size, seed=None, name=None, data_format="NCHW"):
     size = (size[0], size[1], 3)
-    image_size = (size[0], size[1], 3)
-    segmentation_size = (size[0], size[1], 1)
+    if data_format is "NCHW":
+        cropped_image_shape = (3, size[0], size[1])
+    else:
+        cropped_image_shape = (size[0], size[1], 3)
+    cropped_segmentation_shape = (size[0], size[1], 1)
     with tf.variable_scope(name, "double_random_crop", [image, segmentation_image, size]):
+        cropped_image_shape = tf.convert_to_tensor(cropped_image_shape, dtype=tf.int32, name="size")
+        cropped_segmentation_shape = tf.convert_to_tensor(cropped_segmentation_shape, dtype=tf.int32, name="size")
+
         image_tensor = tf.convert_to_tensor(image, name="image_tensor")
         segmentation_image_tensor = tf.convert_to_tensor(segmentation_image, name="segmentation_image_tensor")
-        image_size = tf.convert_to_tensor(image_size, dtype=tf.int32, name="size")
-        segmentation_size = tf.convert_to_tensor(segmentation_size, dtype=tf.int32, name="size")
         shape_1 = tf.shape(image_tensor)
         shape_2 = tf.shape(segmentation_image_tensor)
-        check_shape_0 = tf.assert_equal(shape_1[0], shape_2[0], ["Need same sized images"])
-        check_shape_1 = tf.assert_equal(shape_1[1], shape_2[1], ["Need same sized images"])
+
+        if data_format is "NCHW":
+            check_shape_0 = tf.assert_equal(shape_1[1], shape_2[0], ["Need same sized images"])
+            check_shape_1 = tf.assert_equal(shape_1[2], shape_2[1], ["Need same sized images"])
+        else:
+            check_shape_0 = tf.assert_equal(shape_1[0], shape_2[0], ["Need same sized images"])
+            check_shape_1 = tf.assert_equal(shape_1[1], shape_2[1], ["Need same sized images"])
 
         with tf.control_dependencies([check_shape_0, check_shape_1]):
             shape = shape_1
@@ -124,16 +139,20 @@ def double_random_crop(image, segmentation_image, size, seed=None, name=None):
                 seed=seed) % limit
             sliced_image_1 = tf.slice(image_tensor,
                                       offset,
-                                      image_size,
+                                      cropped_image_shape,
                                       name="double_random_crop_image")
+
+            if data_format is "NCHW":
+                offset = tf.transpose(offset, [1, 2, 0])
+
             sliced_image_2 = tf.slice(segmentation_image_tensor,
                                       offset,
-                                      segmentation_size,
+                                      cropped_segmentation_shape,
                                       name="double_random_crop_segmentation")
             return sliced_image_1, sliced_image_2
 
 
-def single_tf_record_reader(filename_queue):
+def single_tf_record_reader(filename_queue, data_format):
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
     features = tf.parse_single_example(
@@ -147,15 +166,18 @@ def single_tf_record_reader(filename_queue):
     labels = tf.reshape(labels, [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1])
 
     image = tf.decode_raw(features['image'], tf.float32)
-    image = tf.reshape(image, [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3])
+    if data_format is "NCHW":
+        image = tf.reshape(image, [3, IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH])
+    else:
+        image = tf.reshape(image, [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3])
 
     return [image, labels]
 
 
-def raw_tf_record_reader(filename, num_epochs):
+def raw_tf_record_reader(filename, num_epochs, data_format):
     filename_queue = tf.train.string_input_producer(
         [filename], num_epochs=num_epochs)
-    return single_tf_record_reader(filename_queue)
+    return single_tf_record_reader(filename_queue, data_format)
 
 
 def raw_input_reader(ade20k, num_epochs=500):
@@ -171,14 +193,21 @@ def raw_input_reader(ade20k, num_epochs=500):
     return [input_image_data, decoded_segmentation_data]
 
 
-def get_raw_pipeline(batch_size, num_epochs=500):
+def get_raw_pipeline(batch_size, num_epochs=500, data_format="NCHW"):
     ade20k = ADE20K()
     input_map = raw_input_reader(ade20k, num_epochs)
-    return tf.train.batch(input_map,
-                          batch_size=batch_size,
-                          shapes=[[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3],
-                                  [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1]],
-                          num_threads=6)
+    if data_format is "NCHW":
+        return tf.train.batch(input_map,
+                              batch_size=batch_size,
+                              shapes=[[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3],
+                                      [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1]],
+                              num_threads=6)
+    else:
+        return tf.train.batch(input_map,
+                              batch_size=batch_size,
+                              shapes=[[3, IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
+                                      [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1]],
+                              num_threads=6)
 
 
 def regularize_truth(truth):

@@ -3,6 +3,7 @@ import os
 import tensorflow as tf
 
 from pipeline import get_raw_pipeline
+from settings import DATA_FORMAT
 
 
 def _bytes_feature(value):
@@ -14,7 +15,7 @@ with tf.Session() as sess:
 
     increment_global_step_op = tf.assign(global_step, tf.add(global_step, 1))
 
-    image_tensor, label_tensor = get_raw_pipeline(batch_size=1, num_epochs=1)
+    image_tensor, label_tensor = get_raw_pipeline(batch_size=1, num_epochs=1, data_format=DATA_FORMAT)
     sess.run(tf.variables_initializer(tf.local_variables()))
     sess.run(tf.variables_initializer(tf.global_variables()))
 
