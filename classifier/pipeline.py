@@ -15,8 +15,8 @@ class ADE20K:
         for line in training_indices:
             stripped_line = line.strip()
             self.image_full_paths[count] = DATA_DIRECTORY + '/' + stripped_line
-            self.segmentation_full_paths[count] = DATA_DIRECTORY + '/' + \
-                                                  self.image_filename_to_segmentation_filename(stripped_line)
+            self.segmentation_full_paths[count] = \
+                DATA_DIRECTORY + '/' + self.image_filename_to_segmentation_filename(stripped_line)
             count += 1
 
         validation_indices = file('validation_index', 'r')
@@ -39,7 +39,7 @@ class ADE20K:
         return re.sub(r'\.jpg$', '_seg.png', image_filename)
 
 
-def read_and_decode_image_file(filename_queue, data_format):
+def read_and_decode_image_file(filename_queue):
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
     image = tf.image.decode_jpeg(value)
@@ -49,7 +49,7 @@ def read_and_decode_image_file(filename_queue, data_format):
                                    method=ResizeMethod.BILINEAR)
     image = tf.image.per_image_standardization(image)
 
-    if data_format is "NCHW":
+    if DATA_FORMAT is "NCHW":
         image = tf.transpose(image, [2, 0, 1])
 
     return tf.cast(image, dtype=tf.float32)
@@ -73,10 +73,10 @@ def decode_class_mask(im):
     return tf.cast(labels, dtype=tf.int32)
 
 
-def process_raw_input(input_map, image_dimensions, class_embeddings=None, data_format="NCHW"):
+def process_raw_input(input_map, image_dimensions, class_embeddings=None):
     input_image_data, segmentation_data = input_map
     input_image_data, segmentation_data = double_random_crop(input_image_data, segmentation_data, image_dimensions,
-                                                             name='crop_image_with_labels', data_format=data_format)
+                                                             name='crop_image_with_labels')
 
     resized_segmentation_data = tf.image.resize_images(segmentation_data,
                                                        [image_dimensions[0] / 16, image_dimensions[1] / 16],
@@ -88,16 +88,18 @@ def process_raw_input(input_map, image_dimensions, class_embeddings=None, data_f
     return [input_image_data, resized_segmentation_data]
 
 
-def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500, data_format="NCHW"):
+def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500):
     if class_embeddings is not None:
         class_embeddings = tf.constant(class_embeddings)
-    input_map = raw_tf_record_reader("ade20k.tfrecords", num_epochs, data_format)
+    if DATA_FORMAT is "NCHW":
+        input_map = raw_tf_record_reader(DATA_DIRECTORY + "/ade20k-nchw.tfrecords", num_epochs)
+    else:
+        input_map = raw_tf_record_reader(DATA_DIRECTORY + "/ade20k.tfrecords", num_epochs)
     input_tensors = process_raw_input(input_map,
                                       image_dimensions,
-                                      class_embeddings=class_embeddings,
-                                      data_format=data_format)
-    min_after_dequeue = 20182 / 2
-    capacity = 20182
+                                      class_embeddings=class_embeddings)
+    min_after_dequeue = 1024 / 4
+    capacity = 1024
     return tf.train.shuffle_batch(input_tensors,
                                   batch_size=batch_size,
                                   capacity=capacity,
@@ -105,12 +107,15 @@ def get_pipeline(batch_size, image_dimensions, class_embeddings, num_epochs=500,
                                   num_threads=4)
 
 
-def double_random_crop(image, segmentation_image, size, seed=None, name=None, data_format="NCHW"):
-    size = (size[0], size[1], 3)
-    if data_format is "NCHW":
+def double_random_crop(image, segmentation_image, size, seed=None, name=None):
+
+    if DATA_FORMAT is "NCHW":
         cropped_image_shape = (3, size[0], size[1])
+        size = (3, size[0], size[1])
     else:
+        size = (size[0], size[1], 3)
         cropped_image_shape = (size[0], size[1], 3)
+
     cropped_segmentation_shape = (size[0], size[1], 1)
     with tf.variable_scope(name, "double_random_crop", [image, segmentation_image, size]):
         cropped_image_shape = tf.convert_to_tensor(cropped_image_shape, dtype=tf.int32, name="size")
@@ -121,7 +126,7 @@ def double_random_crop(image, segmentation_image, size, seed=None, name=None, da
         shape_1 = tf.shape(image_tensor)
         shape_2 = tf.shape(segmentation_image_tensor)
 
-        if data_format is "NCHW":
+        if DATA_FORMAT is "NCHW":
             check_shape_0 = tf.assert_equal(shape_1[1], shape_2[0], ["Need same sized images"])
             check_shape_1 = tf.assert_equal(shape_1[2], shape_2[1], ["Need same sized images"])
         else:
@@ -137,22 +142,26 @@ def double_random_crop(image, segmentation_image, size, seed=None, name=None, da
                 maxval=tf.int32.max,
                 minval=0,
                 seed=seed) % limit
+
             sliced_image_1 = tf.slice(image_tensor,
                                       offset,
                                       cropped_image_shape,
                                       name="double_random_crop_image")
 
-            if data_format is "NCHW":
-                offset = tf.transpose(offset, [1, 2, 0])
+            if DATA_FORMAT is "NCHW":
+                unstacked_offset = tf.unstack(offset)
+                offset = tf.stack([unstacked_offset[1], unstacked_offset[2], unstacked_offset[0]])
+                # offset = tf.transpose(offset, [1, 2, 0])
 
             sliced_image_2 = tf.slice(segmentation_image_tensor,
                                       offset,
                                       cropped_segmentation_shape,
                                       name="double_random_crop_segmentation")
+
             return sliced_image_1, sliced_image_2
 
 
-def single_tf_record_reader(filename_queue, data_format):
+def single_tf_record_reader(filename_queue):
     reader = tf.TFRecordReader()
     _, serialized_example = reader.read(filename_queue)
     features = tf.parse_single_example(
@@ -166,7 +175,7 @@ def single_tf_record_reader(filename_queue, data_format):
     labels = tf.reshape(labels, [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1])
 
     image = tf.decode_raw(features['image'], tf.float32)
-    if data_format is "NCHW":
+    if DATA_FORMAT is "NCHW":
         image = tf.reshape(image, [3, IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH])
     else:
         image = tf.reshape(image, [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3])
@@ -174,10 +183,10 @@ def single_tf_record_reader(filename_queue, data_format):
     return [image, labels]
 
 
-def raw_tf_record_reader(filename, num_epochs, data_format):
+def raw_tf_record_reader(filename, num_epochs):
     filename_queue = tf.train.string_input_producer(
         [filename], num_epochs=num_epochs)
-    return single_tf_record_reader(filename_queue, data_format)
+    return single_tf_record_reader(filename_queue)
 
 
 def raw_input_reader(ade20k, num_epochs=500):
@@ -193,19 +202,19 @@ def raw_input_reader(ade20k, num_epochs=500):
     return [input_image_data, decoded_segmentation_data]
 
 
-def get_raw_pipeline(batch_size, num_epochs=500, data_format="NCHW"):
+def get_raw_pipeline(batch_size, num_epochs=500):
     ade20k = ADE20K()
     input_map = raw_input_reader(ade20k, num_epochs)
-    if data_format is "NCHW":
+    if DATA_FORMAT is "NCHW":
         return tf.train.batch(input_map,
                               batch_size=batch_size,
-                              shapes=[[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3],
+                              shapes=[[3, IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
                                       [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1]],
                               num_threads=6)
     else:
         return tf.train.batch(input_map,
                               batch_size=batch_size,
-                              shapes=[[3, IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH],
+                              shapes=[[IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 3],
                                       [IMAGE_STANDARDIZATION_HEIGHT, IMAGE_STANDARDIZATION_WIDTH, 1]],
                               num_threads=6)
 

@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 
 from pipeline import get_raw_pipeline
-from settings import DATA_FORMAT
+from settings import DATA_FORMAT, DATA_DIRECTORY
 
 
 def _bytes_feature(value):
@@ -15,13 +15,17 @@ with tf.Session() as sess:
 
     increment_global_step_op = tf.assign(global_step, tf.add(global_step, 1))
 
-    image_tensor, label_tensor = get_raw_pipeline(batch_size=1, num_epochs=1, data_format=DATA_FORMAT)
+    image_tensor, label_tensor = get_raw_pipeline(batch_size=1, num_epochs=1)
     sess.run(tf.variables_initializer(tf.local_variables()))
     sess.run(tf.variables_initializer(tf.global_variables()))
 
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=sess, coord=coord)
-    filename = os.path.join('ade20k.tfrecords')
+    if DATA_FORMAT is "NCHW":
+        filename = DATA_DIRECTORY + '/ade20k-nchw.tfrecords'
+    else:
+        filename = DATA_DIRECTORY + '/ade20k.tfrecords'
+
     writer = tf.python_io.TFRecordWriter(filename)
 
     try:

@@ -1,5 +1,7 @@
 import tensorflow as tf
-from tensorflow.contrib.layers import xavier_initializer
+from tensorflow.contrib.layers import xavier_initializer, batch_norm, max_pool2d
+
+from settings import DATA_FORMAT
 
 
 def create_weights(name, shape):
@@ -12,32 +14,33 @@ def create_weights_with_initializer(name, shape, initializer):
 
 def conv2d(input_layer, filter_shape, stride=1):
     filter = create_weights("filter_weights", filter_shape)
-    return tf.nn.conv2d(input_layer, filter, strides=[1, stride, stride, 1], padding="SAME")
+    strides = [1, 1, stride, stride] if DATA_FORMAT is "NCHW" else [1, stride, stride, 1]
+    return tf.nn.conv2d(input_layer, filter, strides=strides, padding="SAME", data_format=DATA_FORMAT)
 
 
 def relu_conv2d(input_layer, filter_shape, stride=1, mcrelu=False):
     l = conv2d(input_layer, filter_shape, stride=stride)
-    return normalized_relu_activation(l, filter_shape[3], negative_concatenation=mcrelu)
+    output_shape = filter_shape[1] if DATA_FORMAT is "NCHW" else filter_shape[3]
+    return normalized_relu_activation(l, output_shape, negative_concatenation=mcrelu)
 
 
-def normalized_relu_activation(input_layer, output_size, negative_concatenation=False):
+def normalized_relu_activation(input_layer, output_shape, negative_concatenation=False):
     if negative_concatenation:
-        input_layer = tf.concat([input_layer, -1 * input_layer], 3)
-        output_size *= 2
+        input_layer = concat_features([input_layer, -1 * input_layer])
+        output_shape *= 2
     input_layer = batch_normalization(input_layer)
     return tf.nn.relu(input_layer)
 
 
+#  @TODO: Add is training on batch_norm.
 def batch_normalization(layer):
     with tf.variable_scope("batch_norm"):
-        offset = create_weights("offset", [layer.get_shape()[-1]])
-        scale = create_weights("scale", [layer.get_shape()[-1]])
-        return tf.nn.fused_batch_norm(layer, scale, offset, None, None)[0]
+        return batch_norm(layer, fused=True, data_format=DATA_FORMAT)
 
 
 def add_bias(layer, number_of_channels):
     bias = create_weights("bias", number_of_channels)
-    return tf.nn.bias_add(layer, bias)
+    return tf.nn.bias_add(layer, bias, data_format=DATA_FORMAT)
 
 
 def residual_bottleneck_mcrelu(input_layer, kernel_size, input_channels, output_channels_list,
@@ -88,19 +91,18 @@ def residual_inception(input_layer, input_channels, output_channels_list, stride
     with tf.variable_scope('inception_3_3'):
         inception_3 = relu_conv2d(inception_3_2, [3, 3, output_channels_list[4], output_channels_list[5]], stride=1)
     with tf.variable_scope('result'):
-        result = tf.concat([inception_1, inception_2, inception_3], 3)
+        result = concat_features([inception_1, inception_2, inception_3])
 
     total_number_of_channels = output_channels_list[0] + output_channels_list[2] + output_channels_list[5]
 
     if pooling:
         with tf.variable_scope('inception_4_1'):
-            inception_4_1 = tf.nn.max_pool(activated_input_layer, ksize=[1, 3, 3, 1], strides=[1, stride, stride, 1],
-                                           padding="SAME")
+            inception_4_1 = max_pool(activated_input_layer, kernel_size=3, stride=stride, padding="SAME")
             inception_4_1 = batch_normalization(inception_4_1)
         with tf.variable_scope('inception_4_2'):
             inception_4 = relu_conv2d(inception_4_1, [1, 1, input_channels, output_channels_list[6]], stride=1)
         with tf.variable_scope('result_2'):
-            result = tf.concat([result, inception_4], 3)
+            result = concat_features([result, inception_4])
             total_number_of_channels += output_channels_list[6]
     result = batch_normalization(result)
     with tf.variable_scope('inception_downsample'):
@@ -121,8 +123,7 @@ def global_avg_pool(input_layer):  # resnet method
 def fc(input_layer, input_channels, output_channels):
     weights = create_weights('fc_weights', [input_channels, output_channels])
     shape = tf.shape(input_layer)
-    flattened_input = tf.reshape(input_layer, [-1, input_channels])
-    pre_bias = tf.matmul(flattened_input, weights)
+    pre_bias = tf.matmul(input_layer, weights)
     result = add_bias(pre_bias, output_channels)
     new_shape = tf.stack([shape[0], shape[1], shape[2], output_channels])
     return tf.reshape(result, new_shape)
@@ -130,3 +131,15 @@ def fc(input_layer, input_channels, output_channels):
 
 def relu_fc(input_layer, input_channels, output_channels):
     return tf.nn.relu(fc(input_layer, input_channels, output_channels))
+
+
+def concat_features(tensors):
+    return tf.concat(tensors, 1 if DATA_FORMAT is "NCHW" else 3)
+
+
+def max_pool(input_layer, kernel_size, stride, padding="SAME"):
+    return max_pool2d(input_layer,
+                      kernel_size=kernel_size,
+                      stride=stride,
+                      padding=padding,
+                      data_format=DATA_FORMAT)

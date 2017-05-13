@@ -1,8 +1,10 @@
 import tensorflow as tf
 
-from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, fc
+from blocks import relu_conv2d, residual_bottleneck_mcrelu, residual_inception, create_weights, concat_features, \
+    max_pool, conv2d, add_bias
 from clean_pipeline import get_evaluation_pipeline
 from pipeline import get_pipeline
+from settings import DATA_FORMAT
 
 
 class PVANet:
@@ -19,23 +21,29 @@ class PVANet:
 
         with self.graph.as_default():
             if self.training:
-                self.input, self.truth = get_pipeline(batch_size=self.batch_size,
-                                                      image_dimensions=self.image_dimensions,
-                                                      class_embeddings=self.class_embeddings)
+                with tf.device('/cpu:0'):
+                    self.input, self.truth = get_pipeline(batch_size=self.batch_size,
+                                                          image_dimensions=self.image_dimensions,
+                                                          class_embeddings=self.class_embeddings)
                 # tf.summary.image('input image', self.input)
             elif self.evaluation:
                 self.input, self.truth = get_evaluation_pipeline()
             else:
-                self.input = tf.placeholder(tf.float32,
-                                            shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
-                self.truth = tf.placeholder(tf.float32,
-                                            shape=(None, self.image_dimensions[0], self.image_dimensions[1],
-                                                   self.num_output_classes))
+                if DATA_FORMAT is "NCHW":
+                    self.input = tf.placeholder(tf.float32,
+                                                shape=(None, 3, self.image_dimensions[0], self.image_dimensions[1]))
+                else:
+                    self.input = tf.placeholder(tf.float32,
+                                                shape=(None, self.image_dimensions[0], self.image_dimensions[1], 3))
+                self.truth = tf.placeholder(tf.int32, shape=(None, self.image_dimensions[0], self.image_dimensions[1]))
             with tf.variable_scope('conv_1'):
                 conv_1_1 = relu_conv2d(self.input, [7, 7, 3, 16], stride=2, mcrelu=True)
                 # tf.summary.histogram("conv_1_1", conv_1_1)
             with tf.variable_scope('pool_1'):
-                pool_1_1 = tf.nn.max_pool(conv_1_1, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+                pool_1_1 = max_pool(conv_1_1,
+                                    kernel_size=3,
+                                    stride=2,
+                                    padding="SAME")
                 # tf.summary.histogram("pool_1_1", pool_1_1)
             with tf.variable_scope('conv_2_1'):
                 conv_2_1 = residual_bottleneck_mcrelu(pool_1_1, kernel_size=3, input_channels=32,
@@ -92,31 +100,41 @@ class PVANet:
                 conv_5_4 = residual_inception(conv_5_3, 384, [64, 96, 192, 32, 64, 64, 0, 384])
                 # tf.summary.histogram("conv_5_4", conv_5_4)
             with tf.variable_scope('conv_concat'):
-                conv_3_4_scaled = tf.nn.max_pool(conv_3_4, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME")
+                conv_3_4_scaled = max_pool(conv_3_4, kernel_size=3, stride=2, padding="SAME")
                 deconvolution_filter = create_weights('deconvolution_filter', [4, 4, 384, 384])
-                conv_5_4_scaled = tf.nn.conv2d_transpose(conv_5_4, deconvolution_filter,
-                                                         [self.batch_size,
-                                                          tf.shape(conv_5_4)[1] * 2,
-                                                          tf.shape(conv_5_4)[2] * 2,
-                                                          384], strides=[1, 2, 2, 1])
-                conv_concat = tf.nn.relu(tf.concat([conv_3_4_scaled, conv_5_4_scaled, conv_4_4], 3))
+                output_shape = tf.unstack(tf.shape(conv_5_4))
+
+                if DATA_FORMAT is "NCHW":
+                    # output_shape = [output_shape[0], output_shape[3], output_shape[1], output_shape[2]]
+                    output_shape[2] *= 2
+                    output_shape[3] *= 2
+                    strides = [1, 1, 2, 2]
+                else:
+                    output_shape[1] *= 2
+                    output_shape[2] *= 2
+                    strides = [1, 2, 2, 1]
+                output_shape = tf.parallel_stack(output_shape)
+                conv_5_4_scaled = tf.nn.conv2d_transpose(conv_5_4,
+                                                         deconvolution_filter,
+                                                         output_shape,
+                                                         strides=strides,
+                                                         data_format=DATA_FORMAT)
+                conv_concat = tf.nn.relu(concat_features([conv_3_4_scaled, conv_5_4_scaled, conv_4_4]))
                 # tf.summary.histogram("conv_concat", conv_concat)
             with tf.variable_scope('feature_scale_1'):
-                future_scale_1 = relu_conv2d(conv_concat, [1, 1, 768, self.num_output_classes * 2])
-                # tf.summary.histogram("feature_scale_1", future_scale_1)
+                feature_scale_1 = relu_conv2d(conv_concat, [1, 1, 768, self.num_output_classes * 2])
+                # tf.summary.histogram("feature_scale_1", feature_scale_1)
+
             with tf.variable_scope('feature_scale_2'):
-                feature_scale_2 = fc(future_scale_1, self.num_output_classes * 2, self.num_output_classes)
-                # tf.summary.histogram("feature_scale_2", feature_scale_2)
+                feature_scale_2 = conv2d(feature_scale_1, [1, 1, self.num_output_classes * 2, self.num_output_classes])
+                feature_scale_2 = add_bias(feature_scale_2, self.num_output_classes)
+
+            if DATA_FORMAT is "NCHW":
+                feature_scale_2 = tf.transpose(feature_scale_2, [0, 2, 3, 1])
+            # DATA_FORMAT is "NHCW" after this moment
+
             with tf.variable_scope('classification_error'):
                 self.logits = feature_scale_2
-                _max_logit_value, self.class_ids = tf.nn.top_k(self.logits)
-                self.results = tf.nn.softmax(self.logits)
-
-                # regularized_truth = tf.Print(self.truth, [tf.reduce_sum(self.truth),
-                #                                                  tf.reduce_min(self.logits),
-                #                                                  tf.reduce_max(self.logits)],
-                #                              'sum smoothened truth, logits min, max ')
-
                 self.loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits,
                                                                                           labels=self.truth))
 
