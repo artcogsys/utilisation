@@ -53,4 +53,10 @@ android/assets/*
 classifier/summaries/*
 classifier/checkpoints/*
 classifier/env/
+classifier/data/
 *.tfrecords
+
+*.pb
+*.mat
+
+.DS_Store

@@ -1,63 +1,93 @@
 import tensorflow as tf
+import numpy as np
 
 from internal_logger import logger
 from model import PVANet
-from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE, MAX_CLASS_ID
 
 CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'
 CHECKPOINT_STEP = 1000
+VALIDATION_STEP = 150
+
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+
+flags.DEFINE_integer('batch_size', 16, 'Size of each training batch')
+flags.DEFINE_integer('image_size', 504, 'Size of each training batch')
+flags.DEFINE_integer('num_classes', 151, 'Size of each training batch')
 
 
 class Train:
-    def __init__(self, image_dimensions=(192, 128), batch_size=50):
-        self.image_dimensions = image_dimensions
+    def __init__(self, image_size, batch_size, num_classes):
+        self.image_size = image_size
         self.batch_size = batch_size
+        self.num_classes = num_classes
         self.model = PVANet(training=True,
                             batch_size=self.batch_size,
-                            image_dimensions=image_dimensions,
-                            num_output_classes=MAX_CLASS_ID,
-                            class_embeddings=None)
-
-        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.85)
-        # self.sess = tf.Session(graph=self.model.graph,
-        #                        config=tf.ConfigProto(gpu_options=gpu_options))
-
+                            image_size=self.image_size,
+                            num_output_classes=self.num_classes)
         self.sess = tf.Session(graph=self.model.graph)
 
     def train(self):
         with self.model.graph.as_default():
-            self.sess.run(tf.variables_initializer(tf.local_variables()))
+
             merged = tf.summary.merge_all()
             train_writer = tf.summary.FileWriter("summaries", t.model.graph)
-            saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
-
+            validation_writer = tf.summary.FileWriter("summaries/validation", t.model.graph)
+            saver = tf.train.Saver(max_to_keep=1, keep_checkpoint_every_n_hours=3)
             latest_checkpoint = tf.train.latest_checkpoint(CHECKPOINT_FOLDER)
+
+            self.log("initializing variables")
+            self.sess.run(tf.variables_initializer(tf.global_variables()))
             self.sess.run(tf.variables_initializer(tf.local_variables()))
+            self.log("initialized variables")
+
             if latest_checkpoint:
                 self.log("loading from checkpoint file: " + latest_checkpoint)
                 saver.restore(self.sess, latest_checkpoint)
             else:
-                self.log("checkpoint not found, initializing variables.")
-                self.sess.run(tf.variables_initializer(tf.global_variables()))
+                self.log("checkpoint not found")
 
+            self.log("Creating coordinator and queue runners")
             coord = tf.train.Coordinator()
             threads = tf.train.start_queue_runners(sess=self.sess, coord=coord)
+            self.log("beginning training")
+            last_step = 0
             try:
                 while not coord.should_stop():
                     self.log("batch")
-                    m, _, loss, step, = self.sess.run(
-                        [merged,
-                         self.model.optimizer,
+                    m, ids, _, loss, step, = self.sess.run(
+                        [merged, self.model.input_id,
+                         self.model.training_step,
                          self.model.loss,
-                         self.model.global_step])
+                         self.model.global_step
+                         # self.model.all_losses_by_id
+                         ])
+                    self.log("loss = %.5f" % loss)
+
+                    # if np.any(np.isnan(all_losses)):
+                    #     self.log(str(np.where(np.isnan(all_losses) is True)))
+
                     train_writer.add_summary(m, step)
+
                     if step % CHECKPOINT_STEP == 0:
                         saver.save(self.sess, CHECKPOINT_FOLDER + '/' + CHECKPOINT_NAME, global_step=step)
+                    last_step = step
+
+                    if step % VALIDATION_STEP == 0:
+                        m, ids, loss, = self.sess.run(
+                            [merged,
+                             self.model.input_id,
+                             self.model.loss],
+                            feed_dict={self.model.is_training: False})
+                        validation_writer.add_summary(m, step)
+                        self.log("validation on ids: %s" % str(ids))
 
             except tf.errors.OutOfRangeError:
                 self.log('Done training -- epoch limit reached')
             finally:
+                if last_step:
+                    saver.save(self.sess, CHECKPOINT_FOLDER + '/' + CHECKPOINT_NAME, global_step=last_step)
                 coord.request_stop()
 
             coord.join(threads)
@@ -69,5 +99,7 @@ class Train:
 
 
 if __name__ == '__main__':
-    t = Train(image_dimensions=(IMAGE_HEIGHT, IMAGE_WIDTH), batch_size=BATCH_SIZE)
+    t = Train(image_size=(FLAGS.image_size, FLAGS.image_size),
+              batch_size=FLAGS.batch_size,
+              num_classes=FLAGS.num_classes)
     t.train()

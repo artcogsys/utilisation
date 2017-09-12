@@ -1,5 +1,4 @@
-# DATA_DIRECTORY = "/Users/erdicalli/dev/workspace/data"
-DATA_DIRECTORY = "/scratch2/erdi/data"
+
 BATCH_SIZE = 6
 # BATCH_SIZE = 16
 
@@ -7,13 +6,13 @@ ADE_20K_VERSION = "ADE20K_2016_07_26"
 ADE_20K_MAT_FILE = DATA_DIRECTORY + '/' + ADE_20K_VERSION + '/index_ade20k.mat'
 INDEX_FILE = "index"
 
-IMAGE_WIDTH = 192
-IMAGE_HEIGHT = 128
+IMAGE_WIDTH = 504
+IMAGE_HEIGHT = 504
 
 IMAGE_STANDARDIZATION_WIDTH = 256
 IMAGE_STANDARDIZATION_HEIGHT = 192
 
-MAX_CLASS_ID = 3148
+MAX_CLASS_ID = 150
 
 # list of classes that appear in at least 200 images.
 CLASS_IDS = [

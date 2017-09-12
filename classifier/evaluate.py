@@ -1,9 +1,7 @@
 import tensorflow as tf
 
-from class_embeddings import class_embedding_lookup_table
 from internal_logger import logger
 from model import PVANet
-from settings import IMAGE_HEIGHT, IMAGE_WIDTH, BATCH_SIZE, NUM_OUTPUT_CLASSES, MAX_CLASS_ID
 import numpy as np
 
 from sklearn.metrics import confusion_matrix
@@ -12,15 +10,19 @@ CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'
 CHECKPOINT_STEP = 20
 
+flags = tf.app.flags
+FLAGS = flags.FLAGS
+
+flags.DEFINE_integer('num_classes', 150, 'Size of each training batch')
+
 
 class Evaluate:
-    def __init__(self):
-
+    def __init__(self, num_output_classes):
+        self.num_output_classes = num_output_classes
         self.model = PVANet(evaluation=True,
                             batch_size=1,
-                            image_dimensions=(None, None),
-                            num_output_classes=MAX_CLASS_ID,
-                            class_embeddings=None)
+                            image_size=(None, None),
+                            num_output_classes=self.num_output_classes)
 
         # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.85)
         # self.sess = tf.Session(graph=self.model.graph,
@@ -68,5 +70,5 @@ class Evaluate:
 
 
 if __name__ == '__main__':
-    e = Evaluate()
+    e = Evaluate(num_output_classes=FLAGS.num_classes)
     e.evaluate()
