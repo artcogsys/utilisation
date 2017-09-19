@@ -62,8 +62,9 @@ class PVANet:
                                                                 lambda: [validation_image_ids, validation_images,
                                                                          validation_labels])
 
+            m = 2
             with tf.variable_scope("conv_1"):
-                conv_1 = self.blocks.conv2d(self.input, [3, 3, 3, 64])
+                conv_1 = self.blocks.conv2d(self.input, [3, 3, 3, 16 * m])
 
             with tf.variable_scope("conv_2_1"):
                 conv_2_1 = self.blocks.block(conv_1,
@@ -71,8 +72,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[1, 1],
-                                             input_channel=64,
-                                             output_channels=[128, 128])
+                                             input_channel=16 * m,
+                                             output_channels=[32 * m, 32 * m])
 
             with tf.variable_scope("conv_3_1"):
                 conv_3_1 = self.blocks.block(conv_2_1,
@@ -80,8 +81,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[1, 1],
-                                             input_channel=128,
-                                             output_channels=[256, 256])
+                                             input_channel=32 * m,
+                                             output_channels=[64 * m, 64 * m])
 
             with tf.variable_scope("conv_4_1"):
                 conv_4_1 = self.blocks.block(conv_3_1,
@@ -89,8 +90,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[1, 1],
-                                             input_channel=256,
-                                             output_channels=[512, 512])
+                                             input_channel=64 * m,
+                                             output_channels=[128 * m, 128 * m])
 
             with tf.variable_scope("conv_5_1"):
                 conv_5_1 = self.blocks.block(conv_4_1,
@@ -98,8 +99,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[1, 2],
-                                             input_channel=512,
-                                             output_channels=[512, 512])
+                                             input_channel=128 * m,
+                                             output_channels=[128 * m, 256 * m])
 
             with tf.variable_scope("conv_5_2"):
                 conv_5_2 = self.blocks.block(conv_5_1,
@@ -107,8 +108,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[2, 2],
-                                             input_channel=512,
-                                             output_channels=[512, 512])
+                                             input_channel=256 * m,
+                                             output_channels=[128 * m, 256 * m])
 
             with tf.variable_scope("conv_5_3"):
                 conv_5_3 = self.blocks.block(conv_5_2,
@@ -116,8 +117,8 @@ class PVANet:
                                              kernel_sizes=[3, 3],
                                              strides=[1, 1],
                                              dilation_rates=[2, 2],
-                                             input_channel=512,
-                                             output_channels=[512, 512])
+                                             input_channel=256 * m,
+                                             output_channels=[128 * m, 256 * m])
 
             with tf.variable_scope("conv_6"):
                 conv_6 = self.blocks.block(conv_5_3,
@@ -125,8 +126,8 @@ class PVANet:
                                            kernel_sizes=[1, 3, 1],
                                            strides=[1, 1, 1],
                                            dilation_rates=[1, 4, 1],
-                                           input_channel=512,
-                                           output_channels=[256, 256, 512])
+                                           input_channel=256 * m,
+                                           output_channels=[64 * m, 128 * m, 256 * m])
 
             with tf.variable_scope("conv_7"):
                 conv_7 = self.blocks.block(conv_6,
@@ -134,17 +135,18 @@ class PVANet:
                                            kernel_sizes=[1, 3, 1],
                                            strides=[1, 1, 1],
                                            dilation_rates=[1, 4, 1],
-                                           input_channel=512,
-                                           output_channels=[256, 256, 512])
+                                           input_channel=256 * m,
+                                           output_channels=[128 * m, 256 * m, 512 * m])
 
             with tf.variable_scope("classifier_1"):
                 classifier_1 = self.blocks.normalized_relu_activation(conv_7)
-                classifier_1 = self.blocks.conv2d(classifier_1, [3, 3, 512, 512], stride=1, dilation=12)
+                classifier_1 = self.blocks.conv2d(classifier_1, [3, 3, 512 * m, 256 * m], stride=1, dilation=12)
 
             with tf.variable_scope("classifier_2"):
                 classifier_2 = tf.nn.relu(classifier_1)
-                classifier_2 = self.blocks.conv2d(classifier_2, [3, 3, 512, self.num_output_classes], stride=1,
+                classifier_2 = self.blocks.conv2d(classifier_2, [3, 3, 256 * m, self.num_output_classes], stride=1,
                                                   dilation=12)
+
             with tf.variable_scope('classification_error'):
                 self.logits = classifier_2
                 _max_logit_value, self.class_ids = tf.nn.top_k(self.logits)
