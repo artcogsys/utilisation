@@ -203,13 +203,13 @@ class PVANet:
             with tf.variable_scope('classification_gradient'):
                 self.global_step = tf.Variable(0, name='global_step', trainable=False)
 
-                boundaries = [20000, 40000]
-                values = [0.01, 0.001, 0.0001]
+                boundaries = [30000, 80000]
+                values = [0.1, 0.01, 0.001]
 
                 self.learning_rate = tf.train.piecewise_constant(self.global_step, boundaries, values)
                 tf.summary.scalar('learning_rate', self.learning_rate)
 
-                self.optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
+                self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate)
                 update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 
                 with tf.control_dependencies(update_ops):
