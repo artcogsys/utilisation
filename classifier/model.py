@@ -5,11 +5,8 @@ from blocks import Blocks, MAX_POOLING
 from pipeline import get_training_pipeline, get_validation_pipeline
 
 
-class PVANet:
-    def __init__(self, batch_size, image_size, num_output_classes, training=False,
-                 evaluation=False):
-        self.training = training
-        self.evaluation = evaluation
+class ADEResNet:
+    def __init__(self, batch_size, image_size, num_output_classes, placeholder_inputs=False):
         self.num_output_classes = num_output_classes
         self.graph = tf.Graph()
 
@@ -18,50 +15,57 @@ class PVANet:
         self.blocks = Blocks()
 
         with self.graph.as_default():
-            with tf.device("/cpu:0"):
-                self.is_training = tf.placeholder_with_default(tf.constant(True), shape=[])
+            if placeholder_inputs:
+                self.input_id = 0
+                self.input = tf.placeholder(dtype=tf.float32, shape=[None, None, None, 3],
+                                            name="image_placeholder")
+                self.truth = tf.placeholder(dtype=tf.int32, shape=[None, None, None],
+                                            name="truth_placeholder")
+            else:
+                with tf.device("/cpu:0"):
+                    self.is_training = tf.placeholder_with_default(tf.constant(True), shape=[])
 
-                training_image_id, training_image, training_label = get_training_pipeline(image_size=self.image_size)
-                # self.all_losses_by_id = tf.Variable(tf.multiply(tf.ones([20214]), 10),
-                #                                     dtype=tf.float32)
-                # self.mean_loss = tf.reduce_mean(self.all_losses_by_id)
-                # self.keep_condition_low_loss = tf.greater(self.all_losses_by_id[training_image_id],
-                #                                           self.mean_loss * 0.9)
-                # self.keep_condition_labels_exist = tf.greater(tf.reduce_sum(training_label), 0)
-                # self.keep_condition = tf.logical_and(self.keep_condition_labels_exist, self.keep_condition_low_loss)
-                # tf.summary.scalar('mean_loss', self.mean_loss)
-                #
-                # total_skipped = tf.Variable(tf.zeros([1]))
-                # tf.summary.scalar('total_skipped_samples', total_skipped[0])
-                # update_total_skipped = tf.cond(self.keep_condition_low_loss,
-                #                                lambda: total_skipped,
-                #                                lambda: tf.scatter_add(total_skipped, [0], [1]))
-                # tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, update_total_skipped)
+                    training_image_id, training_image, training_label = get_training_pipeline(
+                        image_size=self.image_size)
+                    # self.all_losses_by_id = tf.Variable(tf.multiply(tf.ones([20214]), 10),
+                    #                                     dtype=tf.float32)
+                    # self.mean_loss = tf.reduce_mean(self.all_losses_by_id)
+                    # self.keep_condition_low_loss = tf.greater(self.all_losses_by_id[training_image_id],
+                    #                                           self.mean_loss * 0.9)
+                    # self.keep_condition_labels_exist = tf.greater(tf.reduce_sum(training_label), 0)
+                    # self.keep_condition = tf.logical_and(self.keep_condition_labels_exist, self.keep_condition_low_loss)
+                    # tf.summary.scalar('mean_loss', self.mean_loss)
+                    #
+                    # total_skipped = tf.Variable(tf.zeros([1]))
+                    # tf.summary.scalar('total_skipped_samples', total_skipped[0])
+                    # update_total_skipped = tf.cond(self.keep_condition_low_loss,
+                    #                                lambda: total_skipped,
+                    #                                lambda: tf.scatter_add(total_skipped, [0], [1]))
+                    # tf.add_to_collection(tf.GraphKeys.UPDATE_OPS, update_total_skipped)
 
-                validation_image_id, validation_image, validation_label = get_validation_pipeline(
-                    image_size=self.image_size)
+                    validation_image_id, validation_image, validation_label = get_validation_pipeline(
+                        image_size=self.image_size)
 
-                training_image_ids, training_images, training_labels = tf.train.batch(
-                    [training_image_id, training_image, training_label],
-                    # keep_input=self.keep_condition,
-                    batch_size=self.batch_size,
-                    shapes=[[], [image_size[0], image_size[1], 3], [image_size[0] / 8, image_size[1] / 8]],
-                    capacity=3 * batch_size,
-                    num_threads=4)
+                    training_image_ids, training_images, training_labels = tf.train.batch(
+                        [training_image_id, training_image, training_label],
+                        # keep_input=self.keep_condition,
+                        batch_size=self.batch_size,
+                        shapes=[[], [image_size[0], image_size[1], 3], [image_size[0] / 8, image_size[1] / 8]],
+                        capacity=3 * batch_size,
+                        num_threads=4)
 
-                validation_image_ids, validation_images, validation_labels = tf.train.batch(
-                    [validation_image_id, validation_image, validation_label],
-                    batch_size=self.batch_size,
-                    shapes=[[], [image_size[0], image_size[1], 3], [image_size[0] / 8, image_size[1] / 8]],
-                    capacity=3 * batch_size,
-                    num_threads=2)
+                    validation_image_ids, validation_images, validation_labels = tf.train.batch(
+                        [validation_image_id, validation_image, validation_label],
+                        batch_size=self.batch_size,
+                        shapes=[[], [image_size[0], image_size[1], 3], [image_size[0] / 8, image_size[1] / 8]],
+                        capacity=3 * batch_size,
+                        num_threads=2)
 
-                self.input_id, self.input, self.truth = tf.cond(self.is_training,
-                                                                lambda: [training_image_ids, training_images,
-                                                                         training_labels],
-                                                                lambda: [validation_image_ids, validation_images,
-                                                                         validation_labels])
-
+                    self.input_id, self.input, self.truth = tf.cond(self.is_training,
+                                                                    lambda: [training_image_ids, training_images,
+                                                                             training_labels],
+                                                                    lambda: [validation_image_ids, validation_images,
+                                                                             validation_labels])
             m = 2
             with tf.variable_scope("conv_1"):
                 conv_1 = self.blocks.conv2d(self.input, [3, 3, 3, 16 * m])
