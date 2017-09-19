@@ -43,9 +43,8 @@ class Blocks:
             bn = tf.contrib.layers.batch_norm(input_layer, fused=True, trainable=False, scale=True)
             return bn
 
-    def add_bias(self, layer, number_of_channels):
-        bias = self.create_weights("bias", number_of_channels)
-        return tf.nn.bias_add(layer, bias)
+    def add_bias(self, layer, number_of_channels=None):
+        return tf.contrib.layers.bias_add(layer)
 
     def residual_bottleneck_mcrelu(self, input_layer, kernel_size, input_channels, output_channels_list,
                                    stride=1):
