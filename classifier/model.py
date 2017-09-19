@@ -151,10 +151,12 @@ class PVANet:
                 self.logits = classifier_2
                 _max_logit_value, self.class_ids = tf.nn.top_k(self.logits)
                 self.results = tf.nn.softmax(self.logits)
-                one_hot_truth = tf.one_hot(self.truth, self.num_output_classes, on_value=0.85, off_value=0.001)
+                # one_hot_truth = tf.one_hot(self.truth, self.num_output_classes, on_value=0.85, off_value=0.001)
+                one_hot_truth = tf.one_hot(self.truth, self.num_output_classes)
 
                 self.per_pixel_loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.logits,
                                                                               labels=one_hot_truth)
+                # sce_loss = tf.reduce_mean(self.per_pixel_loss)
 
                 non_zero_indices = tf.cast(tf.not_equal(self.truth, 0), dtype=tf.float32)
 
