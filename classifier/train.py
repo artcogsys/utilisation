@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 from internal_logger import logger
-from model import PVANet
+from model import ADEResNet
 
 CHECKPOINT_FOLDER = 'checkpoints'
 CHECKPOINT_NAME = 'PVANET'
@@ -22,10 +22,9 @@ class Train:
         self.image_size = image_size
         self.batch_size = batch_size
         self.num_classes = num_classes
-        self.model = PVANet(training=True,
-                            batch_size=self.batch_size,
-                            image_size=self.image_size,
-                            num_output_classes=self.num_classes)
+        self.model = ADEResNet(batch_size=self.batch_size,
+                               image_size=self.image_size,
+                               num_output_classes=self.num_classes)
         self.sess = tf.Session(graph=self.model.graph)
 
     def train(self):

@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 from internal_logger import logger
-from model import PVANet
+from model import ADEResNet
 import numpy as np
 
 from sklearn.metrics import confusion_matrix
@@ -19,10 +19,9 @@ flags.DEFINE_integer('num_classes', 150, 'Size of each training batch')
 class Evaluate:
     def __init__(self, num_output_classes):
         self.num_output_classes = num_output_classes
-        self.model = PVANet(evaluation=True,
-                            batch_size=1,
-                            image_size=(None, None),
-                            num_output_classes=self.num_output_classes)
+        self.model = ADEResNet(batch_size=1,
+                               image_size=(None, None),
+                               num_output_classes=self.num_output_classes)
 
         # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.85)
         # self.sess = tf.Session(graph=self.model.graph,
