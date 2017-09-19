@@ -171,8 +171,8 @@ class PVANet:
                         tf.equal(union, 0),
                         tf.ones_like(union), union)),
                     tf.zeros_like(intersection))
-                mean_iou = tf.reduce_mean(iou)
-                inverse_mean_iou = tf.subtract(tf.constant(1, dtype=tf.float32), mean_iou)
+                self.mean_iou = tf.reduce_mean(tf.reduce_sum(iou[:, :, :, 0:], axis=3))
+                inverse_mean_iou = tf.subtract(tf.constant(1, dtype=tf.float32), self.mean_iou)
 
             with tf.variable_scope("decay"):
                 cost = []
