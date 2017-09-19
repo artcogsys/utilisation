@@ -189,7 +189,11 @@ class PVANet:
                 decay = 0.0001 * tf.reduce_sum(cost)
 
             with tf.variable_scope("all_losses"):
-                tf.summary.scalar("mean_iou", mean_iou)
+                tf.summary.scalar("mean_iou", self.mean_iou)
+                tf.summary.scalar("pixel_accuracy", pixel_accuracy)
+                self.competition_loss = (self.mean_iou + pixel_accuracy) / 2
+                tf.summary.scalar("competition_metric", self.competition_loss)
+
                 tf.summary.scalar("decay", decay)
                 tf.summary.scalar("sce_loss", sce_loss)
                 self.loss = inverse_mean_iou + decay + sce_loss
