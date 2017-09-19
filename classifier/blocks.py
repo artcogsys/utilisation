@@ -35,6 +35,7 @@ class Blocks:
             input_layer = tf.concat([input_layer, -1 * input_layer], 3)
 
         input_layer = self.batch_normalization(input_layer)
+        input_layer = self.add_bias(input_layer)
         return tf.nn.relu(input_layer)
 
     @staticmethod
