@@ -186,7 +186,7 @@ class PVANet:
                 for weight in self.blocks.weights:
                     cost.append(tf.nn.l2_loss(weight))
 
-                decay = 0.0001 * tf.reduce_sum(cost)
+                decay = 0.00003 * tf.reduce_sum(cost)
 
             with tf.variable_scope("all_losses"):
                 tf.summary.scalar("mean_iou", self.mean_iou)
@@ -196,7 +196,7 @@ class PVANet:
 
                 tf.summary.scalar("decay", decay)
                 tf.summary.scalar("sce_loss", sce_loss)
-                self.loss = inverse_mean_iou + decay + sce_loss
+                self.loss = decay + inverse_mean_iou + sce_loss * 0.25
                 tf.summary.scalar("total_loss", self.loss)
 
             # costs = list()
