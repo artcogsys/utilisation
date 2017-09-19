@@ -174,6 +174,13 @@ class PVANet:
                 self.mean_iou = tf.reduce_mean(tf.reduce_sum(iou[:, :, :, 0:], axis=3))
                 inverse_mean_iou = tf.subtract(tf.constant(1, dtype=tf.float32), self.mean_iou)
 
+            with tf.variable_scope('pixel_accuracy'):
+                labeled_pixels = tf.cast(tf.greater(self.truth, 0), dtype=tf.float32)
+                correct_pixels = tf.cast(tf.equal(tf.squeeze(self.class_ids, axis=3), self.truth), dtype=tf.float32)
+                # labeled_pixels = tf.reduce_sum(labeled_pixels, axis=[1, 2])
+                correct_labeled_pixels = tf.multiply(correct_pixels, labeled_pixels)
+                pixel_accuracy = tf.reduce_sum(correct_labeled_pixels) / tf.reduce_sum(labeled_pixels)
+
             with tf.variable_scope("decay"):
                 cost = []
                 for weight in self.blocks.weights:
