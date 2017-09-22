@@ -60,3 +60,4 @@ classifier/data/
 *.mat
 
 .DS_Store
+**/data/
