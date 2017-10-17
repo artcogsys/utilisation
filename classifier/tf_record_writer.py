@@ -191,4 +191,4 @@ def run(dataset_dir):
 
     print('\nFinished converting the Ade20k dataset!')
 
-run('./data')
+# run('./data')
