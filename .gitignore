@@ -50,10 +50,10 @@ android/assets/*
 
 *pyc
 
-classifier/summaries/*
-classifier/checkpoints/*
-classifier/env/
-classifier/data/
+*summaries*
+*checkpoints*
+*env*
+*/data/*
 *.tfrecords
 
 *.pb
