@@ -1,0 +1,4 @@
+model_checkpoint_path: "ADE-ResNet-52949"
+all_model_checkpoint_paths: "ADE-ResNet-51000"
+all_model_checkpoint_paths: "ADE-ResNet-52000"
+all_model_checkpoint_paths: "ADE-ResNet-52949"

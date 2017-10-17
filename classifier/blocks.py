@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.contrib.layers import xavier_initializer
+from tensorflow.contrib.layers import xavier_initializer, batch_norm
 
 MAX_POOLING = "max_pooling"
 STRIDES = "strides"
@@ -41,11 +41,13 @@ class Blocks:
     @staticmethod
     def batch_normalization(input_layer):
         with tf.variable_scope("batch_norm"):
-            bn = tf.contrib.layers.batch_norm(input_layer, fused=True, trainable=False, scale=True)
+            bn = batch_norm(input_layer, fused=True, scale=True)
             return bn
 
-    def add_bias(self, layer, number_of_channels=None):
-        return tf.contrib.layers.bias_add(layer)
+    def add_bias(self, layer):
+        # don't add bias
+        return layer
+        # return tf.contrib.layers.bias_add(layer)
 
     def residual_bottleneck_mcrelu(self, input_layer, kernel_size, input_channels, output_channels_list,
                                    stride=1):

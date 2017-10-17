@@ -9,9 +9,9 @@ from preprocess import preprocess_for_train, preprocess_for_eval
 def provider_to_pipeline(provider):
     provider = slim.dataset_data_provider.DatasetDataProvider(
         provider,
-        num_readers=20,
+        num_readers=8,
         common_queue_capacity=provider.num_samples,
-        common_queue_min=100,
+        common_queue_min=512,
         shuffle=True)
 
     [image_id, image, label] = provider.get(['id', 'image', 'label'])
@@ -19,12 +19,29 @@ def provider_to_pipeline(provider):
     return image_id, image, label
 
 
+def provider_to_full_evaluation_pipeline(provider):
+    provider = slim.dataset_data_provider.DatasetDataProvider(
+        provider,
+        num_readers=2,
+        common_queue_capacity=2000,
+        common_queue_min=64,
+        shuffle=True
+    )
+
+    [image_id, image, label] = provider.get(['id', 'image', 'label'])
+    image = tf.expand_dims(image, 0)
+    label = tf.expand_dims(label, 0)
+    return image_id, image, label
+
+
 def get_training_pipeline(image_size):
     image_id, image, label = provider_to_pipeline(get_train())
     preprocessed_images, preprocessed_labels = preprocess_for_train(image, label, image_size[0], image_size[1])
-    preprocessed_labels = tf.image.resize_images(preprocessed_labels,
-                                                 size=(image_size[0] / 8, image_size[1] / 8),
-                                                 method=ResizeMethod.NEAREST_NEIGHBOR)
+    # preprocessed_labels = tf.squeeze(preprocessed_labels, axis=0)
+    # preprocessed_labels = tf.cast(preprocessed_labels, tf.int32)
+    # preprocessed_labels = tf.image.resize_images(preprocessed_labels,
+    #                                              size=(image_size[0] / 1, image_size[1] / 1),
+    #                                              method=ResizeMethod.NEAREST_NEIGHBOR)
     preprocessed_labels = tf.squeeze(preprocessed_labels, 2)
     return image_id, preprocessed_images, preprocessed_labels
 
@@ -33,16 +50,19 @@ def get_validation_pipeline(image_size):
     image_id, image, label = provider_to_pipeline(get_validation())
     preprocessed_images, preprocessed_labels = preprocess_for_eval(image, label, image_size[0], image_size[1],
                                                                    image_size[0])
-    preprocessed_labels = tf.image.resize_images(preprocessed_labels,
-                                                 size=(image_size[0]/8, image_size[1]/8),
-                                                 method=ResizeMethod.NEAREST_NEIGHBOR)
+    # big_labels = tf.one_hot(tf.squeeze(preprocessed_labels, 2), depth=151)
+    #
+    # preprocessed_labels = tf.squeeze(preprocessed_labels, axis=0)
+    # preprocessed_labels = tf.cast(preprocessed_labels, tf.int32)
+    # preprocessed_labels = tf.image.resize_images(preprocessed_labels,
+    #                                              size=(image_size[0] / 64, image_size[1] / 64),
+    #                                              method=ResizeMethod.NEAREST_NEIGHBOR)
     preprocessed_labels = tf.squeeze(preprocessed_labels, 2)
     return image_id, preprocessed_images, preprocessed_labels
 
+
 def get_raw_validation_pipeline():
-    return provider_to_pipeline(get_validation())
-
-
+    return provider_to_full_evaluation_pipeline(get_validation())
 
 #
 # def crop(image, label, size):

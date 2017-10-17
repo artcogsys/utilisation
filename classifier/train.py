@@ -5,7 +5,7 @@ from internal_logger import logger
 from model import ADEResNet
 
 CHECKPOINT_FOLDER = 'checkpoints'
-CHECKPOINT_NAME = 'PVANET'
+CHECKPOINT_NAME = 'ADE-ResNet'
 CHECKPOINT_STEP = 1000
 VALIDATION_STEP = 150
 
@@ -13,7 +13,7 @@ flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 flags.DEFINE_integer('batch_size', 16, 'Size of each training batch')
-flags.DEFINE_integer('image_size', 504, 'Size of each training batch')
+flags.DEFINE_integer('image_size', 256, 'Size of each training batch')
 flags.DEFINE_integer('num_classes', 151, 'Size of each training batch')
 
 
@@ -25,7 +25,8 @@ class Train:
         self.model = ADEResNet(batch_size=self.batch_size,
                                image_size=self.image_size,
                                num_output_classes=self.num_classes)
-        self.sess = tf.Session(graph=self.model.graph)
+        config = tf.ConfigProto(allow_soft_placement=True)
+        self.sess = tf.Session(graph=self.model.graph, config=config)
 
     def train(self):
         with self.model.graph.as_default():
@@ -62,6 +63,7 @@ class Train:
                          self.model.global_step
                          # self.model.all_losses_by_id
                          ])
+
                     self.log("loss = %.5f" % loss)
 
                     # if np.any(np.isnan(all_losses)):
@@ -74,10 +76,9 @@ class Train:
                     last_step = step
 
                     if step % VALIDATION_STEP == 0:
-                        m, ids, loss, = self.sess.run(
+                        m, ids, = self.sess.run(
                             [merged,
-                             self.model.input_id,
-                             self.model.loss],
+                             self.model.input_id],
                             feed_dict={self.model.is_training: False})
                         validation_writer.add_summary(m, step)
                         self.log("validation on ids: %s" % str(ids))
