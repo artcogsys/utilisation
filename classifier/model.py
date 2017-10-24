@@ -147,6 +147,7 @@ class ADEResNet:
                 classifier_2 = self.blocks.conv2d(classifier_2, [3, 3, 128 * m, (self.num_output_classes - 1)],
                                                   stride=1,
                                                   dilation=2)
+                classifier_2
 
             with tf.variable_scope('labels'):
                 one_hot_existance = tf.one_hot(self.truth, depth=num_output_classes)

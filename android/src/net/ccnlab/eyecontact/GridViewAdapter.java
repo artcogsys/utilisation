@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 
 public class GridViewAdapter extends BaseAdapter {
@@ -63,13 +62,13 @@ public class GridViewAdapter extends BaseAdapter {
         if (textViewAdded.get(i)) {
             textView.setTextSize(15);
             textView.setBackgroundColor(cellBackgroundColor);
-            textView.setHeight(viewGroup.getHeight()/ 4);
+            textView.setHeight(viewGroup.getHeight() / 4);
             textView.setWidth(viewGroup.getWidth() / 4);
             return textView;
         } else {
             textView.setTextSize(15);
             textView.setBackgroundColor(cellBackgroundColor);
-            textView.setHeight(viewGroup.getHeight()/ 4);
+            textView.setHeight(viewGroup.getHeight() / 4);
             textView.setWidth(viewGroup.getWidth() / 4);
 
             textViewAdded.set(i, Boolean.TRUE);
@@ -115,8 +114,7 @@ public class GridViewAdapter extends BaseAdapter {
         sb.trimToSize();
 
         for (Classifier.Recognition result : results) {
-            sb.append(result.getTitle()).append(": ").
-                    append(String.format(Locale.US, "%.2f", result.getConfidence())).append("\n");
+            sb.append(result.getTitle()).append("\n");
         }
         return sb.toString();
     }

@@ -27,10 +27,6 @@ class Evaluate:
                                num_output_classes=self.num_output_classes,
                                placeholder_inputs=True)
 
-        # gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=.85)
-        # self.sess = tf.Session(graph=self.model.graph,
-        #                        config=tf.ConfigProto(gpu_options=gpu_options))
-
         self.sess = tf.Session(graph=self.model.graph)
         self.logger = get_logger()
 
