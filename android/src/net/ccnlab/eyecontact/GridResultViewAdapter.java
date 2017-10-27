@@ -3,6 +3,7 @@ package net.ccnlab.eyecontact;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
@@ -14,25 +15,32 @@ import java.util.Comparator;
 import java.util.List;
 
 
-public class GridViewAdapter extends BaseAdapter {
+public class GridResultViewAdapter extends BaseAdapter {
     private List<Classifier.Recognition> results;
     private List<List<Classifier.Recognition>> resultsByGrid;
     private final StringBuilder sb;
     private List<TextView> textViews;
-    private List<Boolean> textViewAdded;
     private boolean clean = false;
     private static final int cellBackgroundColor = 0x99FFFFFF;
 
-    GridViewAdapter(Context c) {
+    GridResultViewAdapter(Context c) {
         super();
         this.results = new ArrayList<>();
         this.resultsByGrid = new ArrayList<>();
         textViews = new ArrayList<>();
-        textViewAdded = new ArrayList<>();
         for (int i = 0; i < 16; i++) {
             resultsByGrid.add(i, new ArrayList<Classifier.Recognition>());
-            textViews.add(new TextView(c));
-            textViewAdded.add(Boolean.FALSE);
+            TextView textView = new TextView(c);
+            textViews.add(textView);
+            // disables the "double click to activate" saying
+            textView.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                                                  @Override
+                                                  public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                                                      super.onInitializeAccessibilityNodeInfo(host, info);
+                                                  }
+                                              }
+            );
+            textView.setClickable(false);
         }
         this.sb = new StringBuilder();
     }
@@ -59,21 +67,11 @@ public class GridViewAdapter extends BaseAdapter {
             clean = true;
         }
         TextView textView = textViews.get(i);
-        if (textViewAdded.get(i)) {
-            textView.setTextSize(15);
-            textView.setBackgroundColor(cellBackgroundColor);
-            textView.setHeight(viewGroup.getHeight() / 4);
-            textView.setWidth(viewGroup.getWidth() / 4);
-            return textView;
-        } else {
-            textView.setTextSize(15);
-            textView.setBackgroundColor(cellBackgroundColor);
-            textView.setHeight(viewGroup.getHeight() / 4);
-            textView.setWidth(viewGroup.getWidth() / 4);
-
-            textViewAdded.set(i, Boolean.TRUE);
-            return textView;
-        }
+        textView.setTextSize(15);
+        textView.setBackgroundColor(cellBackgroundColor);
+        textView.setHeight(viewGroup.getHeight() / 4);
+        textView.setWidth(viewGroup.getWidth() / 4);
+        return textView;
     }
 
     public List<Classifier.Recognition> getResults() {

@@ -24,28 +24,28 @@ import java.util.List;
 
 public class RecognitionScoreView extends GridView implements ResultsView {
 
-    private GridViewAdapter gridViewAdapter = null;
+    private GridResultViewAdapter gridResultViewAdapter = null;
 
     public RecognitionScoreView(final Context context, final AttributeSet set) {
         super(context, set);
     }
 
-    public GridViewAdapter getGridViewAdapter() {
-        if (gridViewAdapter == null) {
-            gridViewAdapter = new GridViewAdapter(getContext());
-            this.setAdapter(gridViewAdapter);
+    public GridResultViewAdapter getGridResultViewAdapter() {
+        if (gridResultViewAdapter == null) {
+            gridResultViewAdapter = new GridResultViewAdapter(getContext());
+            this.setAdapter(gridResultViewAdapter);
         }
-        return gridViewAdapter;
+        return gridResultViewAdapter;
     }
 
     @Override
     public void setResults(final List<Classifier.Recognition> results) {
-        getGridViewAdapter().setResults(results);
+        getGridResultViewAdapter().setResults(results);
         postInvalidate();
     }
 
     @Override
     public void onDraw(final Canvas canvas) {
-        getGridViewAdapter().updateResults();
+        getGridResultViewAdapter().updateResults();
     }
 }
