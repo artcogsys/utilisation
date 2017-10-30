@@ -20,13 +20,11 @@ import android.graphics.Bitmap;
 import android.os.Trace;
 import android.util.Log;
 
+import net.ccnlab.eyecontact.model.ResultsContainer;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Vector;
 
 import org.tensorflow.Operation;
@@ -43,16 +41,19 @@ public class TensorFlowImageClassifier implements Classifier {
 
     // Config values.
     private String inputName;
-    private String outputName;
+    private String localizedLabelOutputName;
+    private String classificationOutputName;
     private int inputSize;
     private int imageMean;
     private float imageStd;
 
     // Pre-allocated buffers.
-    private Vector<String> labels = new Vector<String>();
+    private Vector<String> localizedLabelNames = new Vector<String>();
+    private Vector<String> classificationLabelNames = new Vector<String>();
     private int[] intValues;
     private float[] floatValues;
-    private float[] outputs;
+    private float[] localizedLabelOutputs;
+    private float[] classificationOutputs;
 
     private String[] outputNames;
 
@@ -68,72 +69,54 @@ public class TensorFlowImageClassifier implements Classifier {
      *
      * @param assetManager  The asset manager to be used to load assets.
      * @param modelFilename The filepath of the model GraphDef protocol buffer.
-     * @param labelFilename The filepath of label file for classes.
+     * @param classificationLabelNameFilename The filepath of label file for classes.
+     * @param localizedLabelNameFilename The filepath of label file for localized labels.
      * @param inputSize     The input size. A square image of inputSize x inputSize is assumed.
      * @param imageMean     The assumed mean of the image values.
      * @param imageStd      The assumed std of the image values.
      * @param inputName     The label of the image input node.
-     * @param outputName    The label of the output node.
+     * @param classificationOutputName    The label of the classification output node.
+     * @param localizedLabelOutputName    The label of the localized label output node.
      * @throws IOException
      */
     public static Classifier create(
             AssetManager assetManager,
             String modelFilename,
-            String labelFilename,
+            String classificationLabelNameFilename,
+            String localizedLabelNameFilename,
             int inputSize,
             int imageMean,
             float imageStd,
             String inputName,
-            String outputName) {
+            String classificationOutputName,
+            String localizedLabelOutputName) {
         TensorFlowImageClassifier c = new TensorFlowImageClassifier();
         c.inputName = inputName;
-        c.outputName = outputName;
+        c.localizedLabelOutputName = localizedLabelOutputName;
+        c.classificationOutputName = classificationOutputName;
 
-        // Read the label names into memory.
-        // TODO(andrewharp): make this handle non-assets.
-        String actualFilename = labelFilename.split("file:///android_asset/")[1];
-        Log.i(TAG, "Reading labels from: " + actualFilename);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(assetManager.open(actualFilename)));
-            String line;
-            while ((line = br.readLine()) != null) {
-                c.labels.add(line);
-            }
-            br.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Problem reading label file!", e);
-        }
+        setLabels(classificationLabelNameFilename, c.classificationLabelNames, assetManager);
+        setLabels(localizedLabelNameFilename, c.localizedLabelNames, assetManager);
 
         c.inferenceInterface = new TensorFlowInferenceInterface(assetManager, modelFilename);
 
-        // The shape of the output is [N, NUM_CLASSES], where N is the batch size.
-        final Operation operation = c.inferenceInterface.graphOperation(outputName);
-        int final_size = 1;
-        final int output_height = (int) operation.output(0).shape().size(1);
-        final int output_width = (int) operation.output(0).shape().size(2);
-        final int output_classes = (int) operation.output(0).shape().size(3);
-//    final int numClasses = final_size;
-//    Log.i(TAG, "Read " + c.labels.size() + " labels, output layer size is " + numClasses);
+        c.localizedLabelOutputs = getOutputBuffer(localizedLabelOutputName, c.inferenceInterface, 4);
+        c.classificationOutputs = getOutputBuffer(classificationOutputName, c.inferenceInterface, 2);
 
-        // Ideally, inputSize could have been retrieved from the shape of the input operation.  Alas,
-        // the placeholder node for input in the graphdef typically used does not specify a shape, so it
-        // must be passed in as a parameter.
         c.inputSize = inputSize;
         c.imageMean = imageMean;
         c.imageStd = imageStd;
 
         // Pre-allocate buffers.
-        c.outputNames = new String[]{outputName};
+        c.outputNames = new String[]{localizedLabelOutputName, classificationOutputName};
         c.intValues = new int[inputSize * inputSize];
         c.floatValues = new float[inputSize * inputSize * 3];
-        c.outputs = new float[output_height * output_width * output_classes];
 
         return c;
     }
 
     @Override
-    public List<Recognition> recognizeImage(final Bitmap bitmap) {
+    public ResultsContainer recognizeImage(final Bitmap bitmap) {
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage");
 
@@ -161,20 +144,21 @@ public class TensorFlowImageClassifier implements Classifier {
 
         // Copy the output Tensor back into the output array.
         Trace.beginSection("fetch");
-        inferenceInterface.fetch(outputName, outputs);
+        inferenceInterface.fetch(localizedLabelOutputName, localizedLabelOutputs);
+        inferenceInterface.fetch(classificationOutputName, classificationOutputs);
         Trace.endSection();
-        final ArrayList<Recognition> recognitions = new ArrayList<Recognition>();
 
-        for (int i = 0; i < outputs.length; ++i) {
-            int object_id = i % 150;
-            int object_location = i / 150;
-            if (outputs[i] > THRESHOLD) {
-                recognitions.add(new Recognition("" + i, labels.get(object_id), outputs[i], object_location, null));
-            }
-        }
+        Trace.beginSection("setResults");
+
+        ResultsContainer resultsContainer = new ResultsContainer(classificationLabelNames, localizedLabelNames);
+        resultsContainer.setClassificationResults(classificationOutputs);
+        resultsContainer.setLocalizedLabelResults(localizedLabelOutputs);
+
+        Trace.endSection();
+
 
         Trace.endSection(); // "recognizeImage"
-        return recognitions;
+        return resultsContainer;
     }
 
     @Override
@@ -190,5 +174,37 @@ public class TensorFlowImageClassifier implements Classifier {
     @Override
     public void close() {
         inferenceInterface.close();
+    }
+
+    private static void setLabels(String filename, Vector<String> buffer, AssetManager assetManager) {
+        String actualFilename = filename.split("file:///android_asset/")[1];
+        Log.i(TAG, "Reading label names from: " + actualFilename);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new InputStreamReader(assetManager.open(actualFilename)));
+            String line;
+            while ((line = br.readLine()) != null) {
+                buffer.add(line);
+            }
+            br.close();
+        } catch (IOException e) {
+            throw new RuntimeException("Problem reading label file!", e);
+        }
+    }
+
+    // Does not support partially known dimensions.
+    private static float[] getOutputBuffer(String operationName, TensorFlowInferenceInterface inferenceInterface, int dimensionCount) {
+        Log.i(TAG, "creating output buffers for: " + operationName);
+
+        final Operation operation = inferenceInterface.graphOperation(operationName);
+        Log.i(TAG, "got operation for name: " + operationName);
+        int shape = 1;
+        int dim = 0;
+        while (dim < dimensionCount) {
+            shape *= (int) operation.output(0).shape().size(dim);
+            dim++;
+        }
+
+        return new float[shape];
     }
 }

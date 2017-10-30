@@ -42,7 +42,6 @@ import android.widget.Toast;
 import java.nio.ByteBuffer;
 import net.ccnlab.eyecontact.env.ImageUtils;
 import net.ccnlab.eyecontact.env.Logger;
-import net.ccnlab.eyecontact.R; // Explicit import needed for internal Google builds.
 
 public abstract class CameraActivity extends Activity
     implements OnImageAvailableListener, Camera.PreviewCallback {
@@ -217,7 +216,7 @@ public abstract class CameraActivity extends Activity
   public synchronized void onStart() {
     LOGGER.d("onStart " + this);
     super.onStart();
-    findViewById(R.id.results).setLayoutParams(findViewById(R.id.texture).getLayoutParams());
+    findViewById(R.id.localized_grid_results).setLayoutParams(findViewById(R.id.texture).getLayoutParams());
   }
 
   @Override

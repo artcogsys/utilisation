@@ -28,20 +28,21 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
 
-import java.util.List;
 import java.util.Vector;
 
 import net.ccnlab.eyecontact.env.BorderedText;
 import net.ccnlab.eyecontact.env.ImageUtils;
 import net.ccnlab.eyecontact.env.Logger;
-import net.ccnlab.eyecontact.R; // Explicit import needed for internal Google builds.
+import net.ccnlab.eyecontact.model.ClassificationResult;
+import net.ccnlab.eyecontact.model.ResultsContainer;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
     private static final Logger LOGGER = new Logger();
 
     protected static final boolean SAVE_PREVIEW_BITMAP = false;
 
-    private ResultsView resultsView;
+    private LocalizedGridResultView localizedGridResultsView;
+    private ClassificationResultView classificationResultView;
 
     private Bitmap rgbFrameBitmap = null;
     private Bitmap croppedBitmap = null;
@@ -52,7 +53,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     // These are the settings for the original v1 Inception model. If you want to
     // use a model that's been produced from the TensorFlow for Poets codelab,
     // you'll need to set IMAGE_SIZE = 299, IMAGE_MEAN = 128, IMAGE_STD = 128,
-    // INPUT_NAME = "Mul", and OUTPUT_NAME = "final_result".
+    // INPUT_NAME = "Mul", and LOCALIZED_OUTPUT_NAME = "final_result".
     // You'll also need to update the MODEL_FILE and LABEL_FILE paths to point to
     // the ones you produced.
     //
@@ -69,13 +70,14 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     private static final int IMAGE_MEAN = 128;
     private static final float IMAGE_STD = 128;
     private static final String INPUT_NAME = "Placeholder";
-    private static final String OUTPUT_NAME = "segmentation/Sigmoid";
 
+    private static final String CLASSIFICATION_OUTPUT_NAME = "InceptionV3/Logits/SpatialSqueeze";
+    private static final String LOCALIZED_OUTPUT_NAME = "segmentation/Sigmoid";
+
+    private static final String CLASSIFICATION_LABEL_NAME_FILE = "file:///android_asset/imagenet_slim_labels.txt";
+    private static final String LOCALIZED_LABEL_NAME_FILE = "file:///android_asset/objectInfo150.txt";
 
     private static final String MODEL_FILE = "file:///android_asset/inception_v3_ade.pb";
-    private static final String LABEL_FILE =
-            "file:///android_asset/objectInfo150.txt";
-
 
     private static final boolean MAINTAIN_ASPECT = true;
 
@@ -109,21 +111,23 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                 TypedValue.COMPLEX_UNIT_DIP, TEXT_SIZE_DIP, getResources().getDisplayMetrics());
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
-
+        LOGGER.i("creating the classifier");
         classifier =
                 TensorFlowImageClassifier.create(
                         getAssets(),
                         MODEL_FILE,
-                        LABEL_FILE,
+                        CLASSIFICATION_LABEL_NAME_FILE,
+                        LOCALIZED_LABEL_NAME_FILE,
                         INPUT_SIZE,
                         IMAGE_MEAN,
                         IMAGE_STD,
                         INPUT_NAME,
-                        OUTPUT_NAME);
-
+                        CLASSIFICATION_OUTPUT_NAME,
+                        LOCALIZED_OUTPUT_NAME);
+        LOGGER.i("created the classifier");
         previewWidth = size.getWidth();
         previewHeight = size.getHeight();
-
+        LOGGER.i("getting display the classifier");
         final Display display = getWindowManager().getDefaultDisplay();
         final int screenOrientation = display.getRotation();
 
@@ -168,14 +172,19 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                     @Override
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = classifier.recognizeImage(croppedBitmap);
+                        final ResultsContainer results = classifier.recognizeImage(croppedBitmap);
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                         LOGGER.i("Detect: %s", results);
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-                        if (resultsView == null) {
-                            resultsView = (ResultsView) findViewById(R.id.results);
+                        if (localizedGridResultsView == null) {
+                            localizedGridResultsView = (LocalizedGridResultView) findViewById(R.id.localized_grid_results);
                         }
-                        resultsView.setResults(results);
+                        localizedGridResultsView.setResults(results.getLocalizedLabels());
+
+                        if (classificationResultView == null) {
+                            classificationResultView = (ClassificationResultView) findViewById(R.id.classification_result_view);
+                        }
+                        classificationResultView.setResults(results.getClassifications());
                         requestRender();
                         readyForNextImage();
                     }

@@ -1,6 +1,7 @@
 package net.ccnlab.eyecontact;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -8,6 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import net.ccnlab.eyecontact.env.Logger;
+import net.ccnlab.eyecontact.model.LocalizedLabel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,20 +18,22 @@ import java.util.List;
 
 
 public class GridResultViewAdapter extends BaseAdapter {
-    private List<Classifier.Recognition> results;
-    private List<List<Classifier.Recognition>> resultsByGrid;
+    private List<LocalizedLabel> results;
+    private List<List<LocalizedLabel>> resultsByGrid;
     private final StringBuilder sb;
     private List<TextView> textViews;
     private boolean clean = false;
-    private static final int cellBackgroundColor = 0x99FFFFFF;
-
+    private static final int cellBackgroundColor = 0x99009ec8;
+    private final Typeface tf;
     GridResultViewAdapter(Context c) {
         super();
+        tf = Typeface.createFromAsset(c.getAssets(),
+                "calibri.ttf");
         this.results = new ArrayList<>();
         this.resultsByGrid = new ArrayList<>();
         textViews = new ArrayList<>();
         for (int i = 0; i < 16; i++) {
-            resultsByGrid.add(i, new ArrayList<Classifier.Recognition>());
+            resultsByGrid.add(i, new ArrayList<LocalizedLabel>());
             TextView textView = new TextView(c);
             textViews.add(textView);
             // disables the "double click to activate" saying
@@ -68,17 +72,19 @@ public class GridResultViewAdapter extends BaseAdapter {
         }
         TextView textView = textViews.get(i);
         textView.setTextSize(15);
+        textView.setTypeface(tf);
         textView.setBackgroundColor(cellBackgroundColor);
+        textView.setTextColor(0xFF000000);
         textView.setHeight(viewGroup.getHeight() / 4);
         textView.setWidth(viewGroup.getWidth() / 4);
         return textView;
     }
 
-    public List<Classifier.Recognition> getResults() {
+    public List<LocalizedLabel> getResults() {
         return results;
     }
 
-    public void setResults(List<Classifier.Recognition> results) {
+    public void setResults(List<LocalizedLabel> results) {
         this.results = results;
     }
 
@@ -92,14 +98,14 @@ public class GridResultViewAdapter extends BaseAdapter {
                 last_grid = i;
             }
 
-            while (last_index < results.size() && results.get(last_index).getGrid() == i) {
+            while (last_index < results.size() && results.get(last_index).getGridLocation() == i) {
                 this.resultsByGrid.get(i).add(results.get(last_index));
                 last_index++;
             }
 
-            Collections.sort(this.resultsByGrid.get(i), new Comparator<Classifier.Recognition>() {
+            Collections.sort(this.resultsByGrid.get(i), new Comparator<LocalizedLabel>() {
                 @Override
-                public int compare(Classifier.Recognition lrec, Classifier.Recognition rrec) {
+                public int compare(LocalizedLabel lrec, LocalizedLabel rrec) {
                     return Float.compare(rrec.getConfidence(), lrec.getConfidence());
                 }
             });
@@ -107,11 +113,11 @@ public class GridResultViewAdapter extends BaseAdapter {
         }
     }
 
-    private String resultsToString(List<Classifier.Recognition> results) {
+    private String resultsToString(List<LocalizedLabel> results) {
         sb.setLength(0); // set length of buffer to 0
         sb.trimToSize();
 
-        for (Classifier.Recognition result : results) {
+        for (LocalizedLabel result : results) {
             sb.append(result.getTitle()).append("\n");
         }
         return sb.toString();

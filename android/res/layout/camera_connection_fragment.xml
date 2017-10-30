@@ -24,12 +24,20 @@
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true" />
 
-    <net.ccnlab.eyecontact.RecognitionScoreView
-        android:id="@+id/results"
+    <net.ccnlab.eyecontact.ClassificationResultView
+        android:id="@+id/classification_result_view"
+        android:layout_width="match_parent"
+        android:layout_height="112dp"
+        android:layout_alignParentTop="true" />
+
+    <net.ccnlab.eyecontact.LocalizedGridResultView
+        android:id="@+id/localized_grid_results"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
+            android:layout_below="@+id/classification_result_view"
         android:numColumns="4" />
+
 
     <net.ccnlab.eyecontact.OverlayView
         android:id="@+id/debug_overlay"

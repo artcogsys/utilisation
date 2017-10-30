@@ -17,6 +17,6 @@ package net.ccnlab.eyecontact;
 
 import java.util.List;
 
-public interface ResultsView {
-  public void setResults(final List<Classifier.Recognition> results);
+public interface ResultsView<T> {
+  public void setResults(final List<T> results);
 }

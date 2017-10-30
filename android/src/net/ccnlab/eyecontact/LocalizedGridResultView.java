@@ -20,13 +20,15 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.GridView;
 
+import net.ccnlab.eyecontact.model.LocalizedLabel;
+
 import java.util.List;
 
-public class RecognitionScoreView extends GridView implements ResultsView {
+public class LocalizedGridResultView extends GridView implements ResultsView<LocalizedLabel> {
 
     private GridResultViewAdapter gridResultViewAdapter = null;
 
-    public RecognitionScoreView(final Context context, final AttributeSet set) {
+    public LocalizedGridResultView(final Context context, final AttributeSet set) {
         super(context, set);
     }
 
@@ -39,7 +41,7 @@ public class RecognitionScoreView extends GridView implements ResultsView {
     }
 
     @Override
-    public void setResults(final List<Classifier.Recognition> results) {
+    public void setResults(final List<LocalizedLabel> results) {
         getGridResultViewAdapter().setResults(results);
         postInvalidate();
     }
