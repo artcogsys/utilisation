@@ -176,10 +176,10 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                         LOGGER.i("Detect: %s", results);
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-                        if (localizedGridResultsView == null) {
-                            localizedGridResultsView = (LocalizedGridResultView) findViewById(R.id.localized_grid_results);
-                        }
-                        localizedGridResultsView.setResults(results.getLocalizedLabels());
+//                        if (localizedGridResultsView == null) {
+//                            localizedGridResultsView = (LocalizedGridResultView) findViewById(R.id.localized_grid_results);
+//                        }
+//                        localizedGridResultsView.setResults(results.getLocalizedLabels());
 
                         if (classificationResultView == null) {
                             classificationResultView = (ClassificationResultView) findViewById(R.id.classification_result_view);

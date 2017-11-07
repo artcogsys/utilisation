@@ -108,7 +108,7 @@ public class TensorFlowImageClassifier implements Classifier {
         c.imageStd = imageStd;
 
         // Pre-allocate buffers.
-        c.outputNames = new String[]{localizedLabelOutputName, classificationOutputName};
+        c.outputNames = new String[]{classificationOutputName};
         c.intValues = new int[inputSize * inputSize];
         c.floatValues = new float[inputSize * inputSize * 3];
 
@@ -144,7 +144,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
         // Copy the output Tensor back into the output array.
         Trace.beginSection("fetch");
-        inferenceInterface.fetch(localizedLabelOutputName, localizedLabelOutputs);
+//        inferenceInterface.fetch(localizedLabelOutputName, localizedLabelOutputs);
         inferenceInterface.fetch(classificationOutputName, classificationOutputs);
         Trace.endSection();
 
@@ -152,7 +152,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
         ResultsContainer resultsContainer = new ResultsContainer(classificationLabelNames, localizedLabelNames);
         resultsContainer.setClassificationResults(classificationOutputs);
-        resultsContainer.setLocalizedLabelResults(localizedLabelOutputs);
+//        resultsContainer.setLocalizedLabelResults(localizedLabelOutputs);
 
         Trace.endSection();
 

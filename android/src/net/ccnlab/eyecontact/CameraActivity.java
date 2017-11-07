@@ -216,7 +216,7 @@ public abstract class CameraActivity extends Activity
   public synchronized void onStart() {
     LOGGER.d("onStart " + this);
     super.onStart();
-    findViewById(R.id.localized_grid_results).setLayoutParams(findViewById(R.id.texture).getLayoutParams());
+//    findViewById(R.id.localized_grid_results).setLayoutParams(findViewById(R.id.texture).getLayoutParams());
   }
 
   @Override
