@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
@@ -16,7 +17,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-
 public class GridResultViewAdapter extends BaseAdapter {
     private List<LocalizedLabel> results;
     private List<List<LocalizedLabel>> resultsByGrid;
@@ -24,27 +24,18 @@ public class GridResultViewAdapter extends BaseAdapter {
     private List<TextView> textViews;
     private boolean clean = false;
     private static final int cellBackgroundColor = 0x99009ec8;
-    private final Typeface tf;
+    private final Logger LOGGER = new Logger();
+
     GridResultViewAdapter(Context c) {
         super();
-        tf = Typeface.createFromAsset(c.getAssets(),
-                "calibri.ttf");
+
         this.results = new ArrayList<>();
         this.resultsByGrid = new ArrayList<>();
         textViews = new ArrayList<>();
         for (int i = 0; i < 16; i++) {
             resultsByGrid.add(i, new ArrayList<LocalizedLabel>());
-            TextView textView = new TextView(c);
+            TextView textView = new AccessibilityUpdatingTextView(c);
             textViews.add(textView);
-            // disables the "double click to activate" saying
-            textView.setAccessibilityDelegate(new View.AccessibilityDelegate() {
-                                                  @Override
-                                                  public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
-                                                      super.onInitializeAccessibilityNodeInfo(host, info);
-                                                  }
-                                              }
-            );
-            textView.setClickable(false);
         }
         this.sb = new StringBuilder();
     }
@@ -71,8 +62,7 @@ public class GridResultViewAdapter extends BaseAdapter {
             clean = true;
         }
         TextView textView = textViews.get(i);
-        textView.setTextSize(15);
-        textView.setTypeface(tf);
+
         textView.setBackgroundColor(cellBackgroundColor);
         textView.setTextColor(0xFF000000);
         textView.setHeight(viewGroup.getHeight() / 4);
@@ -116,10 +106,15 @@ public class GridResultViewAdapter extends BaseAdapter {
     private String resultsToString(List<LocalizedLabel> results) {
         sb.setLength(0); // set length of buffer to 0
         sb.trimToSize();
-
+        int i = 0;
         for (LocalizedLabel result : results) {
             sb.append(result.getTitle()).append("\n");
+            i++;
+            if (i > 3) {
+                break;
+            }
         }
+//        sb.append("move your finger around the screen to discover your environment.");
         return sb.toString();
     }
 }

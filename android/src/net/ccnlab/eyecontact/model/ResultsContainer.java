@@ -9,7 +9,7 @@ import java.util.PriorityQueue;
 import java.util.Vector;
 
 public class ResultsContainer {
-    public static final float LOCALIZED_LABEL_THRESHOLD = 0.65f;
+    public static final float LOCALIZED_LABEL_THRESHOLD = 0.5f;
     public static final float CLASSIFICATION_THRESHOLD = 0.40f;
     public static final int MAX_CLASSIFICATION_RESULTS = 4;
     private static final Logger LOGGER = new Logger();
@@ -54,11 +54,11 @@ public class ResultsContainer {
                             }
                         });
         for (int i = 0; i < outputs.length; ++i) {
-            if (outputs[i] > CLASSIFICATION_THRESHOLD) {
+//            if (outputs[i] > CLASSIFICATION_THRESHOLD) {
                 pq.add(
                         new ClassificationResult(
                                 "" + i, classificationLabelNames.get(i), outputs[i]));
-            }
+//            }
         }
         int recognitionsSize = Math.min(pq.size(), MAX_CLASSIFICATION_RESULTS);
         for (int i = 0; i < recognitionsSize; ++i) {
