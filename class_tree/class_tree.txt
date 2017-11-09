@@ -1,0 +1,395 @@
+building, establishment, structures
+    establishment
+        grocery store, grocery, food market, market:583
+        bakery, bakeshop, bakehouse:416
+        bookshop, bookstore, bookstall:455
+        shoe shop, shoe-shop, shoe store:789
+        tobacco shop, tobacconist shop, tobacconist:861
+        barbershop:425
+        toyshop:866
+        butcher shop, meat market:468
+        confectionery, confectionary, candy store:510
+        restaurant, eating house, eating place, eatery:763
+        planetarium:728
+        library:625
+        cinema, movie theater, movie theatre, movie house, picture palace:499
+        lumbermill, sawmill:635
+    housing, lodging, living accommodations
+        mobile home, manufactured home:661
+        monastery:664
+        palace:699
+        cliff dwelling:501
+        yurt:916
+        mountain tent:673
+        castle:484
+    memorial, monument, religious
+        brass, memorial tablet, plaque:459
+        triumphal arch:874
+        megalith, megalithic structure:650
+        stupa, tope:833
+        mosque:669
+        church, church building:498
+        altar:407
+    building, construction, structure or their parts
+        turnstile:878
+        barn:426
+        pedestal, plinth, footstall:709
+        obelisk:683
+        patio, terrace:707
+        fountain:563
+        suspension bridge:840
+        viaduct:889
+        steel arch bridge:822
+        boathouse:450
+        apiary, bee house:411
+        dock, dockage, docking facility:537
+        coil, spiral, volute, whorl, helix:507
+        beacon, lighthouse, beacon light, pharos:438
+        prison, prison house:744
+        grille, radiator grille:582
+    barrier
+        sliding door:800
+        worm fence, snake fence, snake-rail fence, Virginia fence:913
+        picket fence, paling:717
+        breakwater, groin, groyne, mole, bulwark, seawall, jetty:461
+        bannister, banister, balustrade, balusters, handrail:422
+        dam, dike, dyke:526
+        chainlink fence:490
+        stone wall:826
+
+clothing, wear, wearable, textile
+    general clothing
+        jersey, T-shirt, tee shirt:611
+        jean, blue jean, denim:609
+        sweatshirt:842
+        cardigan:475
+        sarong:776
+        overskirt:690
+        hoopskirt, crinoline:602
+        miniskirt, mini:656
+        abaya:400
+        stole:825
+        pajama, pyjama, pj's, jammies:698
+        gown:579
+        brassiere, bra, bandeau:460
+    beach clothing
+        maillot, tank suit:640
+        bikini, two-piece:446
+        swimming trunks, bathing trunks:843
+    winter clothing
+        poncho:736
+        fur coat:569
+        lab coat, laboratory coat:618
+        raincoat, waterproof
+        trench coat:870
+    footwear
+        sock:807
+        maillot:639
+        Christmas stocking:497
+        shoe
+        Loafer:631
+        sandal:775
+        running shoe:771
+        clog, geta, patten, sabot:503
+        cowboy boot:515
+    ties
+        bolo tie, bolo, bola tie, bola:452
+        bow tie, bow-tie, bowtie:458
+        Windsor tie:907
+        suit, suit of clothes:835
+    headdress, headgear
+        shower cap:794
+        bathing cap, swimming cap:434
+        mortarboard:668
+        crash helmet:519
+        football helmet:561
+        sombrero:809
+        cowboy hat, ten-gallon hat:516
+        bonnet, poke bonnet:453
+        bearskin, busby, shako:440
+    protective garment
+        knee pad:616
+        apron:412
+    fabric, cloth, material, textile
+        handkerchief, hankie, hanky, hankey:592
+        bib:444
+        paper towel:701
+        dishrag, dishcloth:534
+        velvet:886
+        wool, woolen, woollen:912
+    rest
+        academic gown, academic robe, judge's robe:401
+        vestment:888
+        kimono:615
+        feather boa, boa:553
+        mitten:659
+        mask:644
+        wig:904
+        military uniform:653
+home
+    kitchen
+        refrigerator, icebox:761
+        dishwasher, dish washer, dishwashing machine:535
+        dining table, board:533
+        lighter, light, igniter, ignitor:627
+        washbasin, handbasin, washbowl, lavabo, wash-hand basin:897
+        caldron, cauldron:470
+        microwave, microwave oven:652
+        espresso maker:551
+        toaster:860
+    kitchen utensils
+        wok:910
+        frying pan, frypan, skillet:568
+        Crock Pot:522
+        spatula:814
+        soup bowl:810
+        mixing bowl:660
+        Petri dish:713
+        wooden spoon:911
+        plate rack:730
+        vase:884
+        beaker:439
+        coffeepot:506
+        teapot:850
+        waffle iron:892
+        Dutch oven:545
+        cocktail shaker:504
+        saltshaker, salt shaker:774
+        beer glass:442
+        goblet:573
+        milk can:654
+        measuring cup:648
+        coffee mug:505
+        ladle:619
+        tray:869
+        bucket, pail:464
+        pitcher, ewer:726
+    bathroom
+        toilet tissue, toilet paper, bathroom tissue:1000
+        bath towel:435
+        hand blower, blow dryer, blow drier, hair dryer, hair drier:590
+        toilet seat:862
+        bathtub, bathing tub, bath, tub:436
+        soap dispenser:805
+    bedroom
+        wardrobe, closet, press:895
+        bookcase:454
+        chiffonier, commode:494
+        pillow:722
+        quilt, comforter, comfort, puff:751
+    work room, study room
+        file, file cabinet, filing cabinet:554
+        desk:527
+        table lamp:847
+    chais, couch
+        rocking chair, rocker:766
+        folding chair:560
+        studio couch, day bed:832
+    baby room
+        bassinet:432
+        cradle:517
+        crib, cot:521
+    rest
+        washer, automatic washer, washing machine:898
+        iron, smoothing iron:607
+        sewing machine:787
+        vacuum, vacuum cleaner:883
+        home theater, home theatre:599
+        prayer rug, prayer mat:742
+        medicine chest, medicine cabinet:649
+        switch, electric switch, electrical switch:845
+        mailbox, letter box:638
+        ashcan, trash can, garbage can, wastebin, ash bin, ash-bin, ashbin, dustbin, trash barrel, trash bin:413
+
+
+food
+    dish, dip
+        pizza, pizza pie:964
+        hotdog, hot dog, red hot:935
+        cheeseburger:934
+        potpie:965
+        hot pot, hotpot:927
+        meat loaf, meatloaf:963
+        burrito:966
+        consomme:926
+        ice lolly, lolly, lollipop, popsicle:930
+        ice cream, icecream:929
+        trifle:928
+        plate:924
+        hay:959
+        dough:962
+        mashed potato:936
+        guacamole:925
+        carbonara:960
+        chocolate sauce, chocolate syrup:961
+        menu:923
+    beverage, drink, drinkable, potable
+        red wine:967
+        eggnog:970
+        cup:969
+        espresso:968
+    baked goods
+        bagel, beigel:932
+        pretzel:933
+        French loaf:931
+    vegetable, veggie, veg
+        mushroom:948
+        spaghetti squash:941
+        zucchini, courgette:940
+        butternut squash:943
+        acorn squash:942
+        cardoon:947
+        artichoke, globe artichoke:945
+        cucumber, cuke:944
+        broccoli:938
+        head cabbage:937
+        cauliflower:939
+        solanaceous vegetable
+        bell pepper:946
+    fruit
+        custard apple:957
+        orange:951
+        lemon:952
+        strawberry:950
+        pomegranate:958
+        fig:953
+        pineapple, ananas:954
+        banana:955
+        jackfruit, jak, jack:956
+        Granny Smith:949
+    seed
+        hip, rose hip, rosehip:990
+        acorn:989
+        spike, capitulum:999
+        corn:988
+        buckeye, horse chestnut, conker:991
+        rapeseed:985
+
+musical instrument, instrument
+    wind instrument, wind
+        harmonica, mouth organ, harp, mouth harp:594
+        accordion, piano accordion, squeeze box:402
+        panpipe, pandean pipe, syrinx:700
+        trombone:876
+        cornet, horn, trumpet, trump:514
+        French horn, horn:567
+        flute, transverse flute:559
+        sax, saxophone:777
+        bassoon:433
+        oboe, hautboy, hautbois:684
+        ocarina, sweet potato:685
+    stringed instrument
+        cello, violoncello:487
+        violin, fiddle:890
+        harp:595
+        electric guitar:547
+        acoustic guitar:403
+        banjo:421
+    keyboard instrument
+        grand piano, grand:580
+        upright, upright piano:882
+        organ, pipe organ:688
+    percussion instrument, percussive instrument
+        steel drum:823
+        marimba, xylophone:643
+        drum, membranophone, tympan:542
+        maraca:642
+        chime, bell, gong:495
+        gong, tam-tam:578
+
+things
+    electronic device
+        cellular telephone, cellular phone, cellphone, cell, mobile phone:488
+        pay-phone, pay-station:708
+        dial telephone, dial phone:529
+        CD player:486
+        tape player:849
+        modem:663
+        photocopier:714
+        remote control, remote:762
+        microphone, mike:651
+        loudspeaker, speaker, speaker unit, loudspeaker system, speaker system:633
+        iPod:606
+        television, television system:852
+        radio, wireless:755
+        cassette:482
+    sports equipment
+        croquet ball:523
+        barbell:423
+        dumbbell:544
+        horizontal bar, high bar:603
+        balance beam, beam:417
+        parallel bars, bars:703
+        punching bag, punch bag, punching ball, punchball:748
+    ball
+        rugby ball:769
+        ping-pong ball:723
+        basketball:431
+        volleyball:891
+        golf ball:575
+        tennis ball:853
+        baseball:430
+        soccer ball:806
+    machine
+        vending machine:887
+        cash machine, ATM:481
+        desktop computer:528
+        hand-held computer, hand-held microcomputer:591
+        laptop, laptop computer:621
+        notebook, notebook computer:682
+    cleaning
+        swab, swob, mop:841
+        broom:463
+    heater, warmer
+        stove:828
+        space heater:812
+        radiator:754
+    toys
+        teddy, teddy bear:851
+        swing:844
+    sign
+        street sign:920
+        traffic light, traffic signal, stoplight:921
+    cosmetics
+        sunscreen, sunblock, sun blocker:839
+        lipstick, lip rouge:630
+        perfume, essence:712
+        face powder:552
+        hair spray:586
+        lotion:632
+    flask, jug
+        water jug:900
+        whiskey jug:902
+        beer bottle:441
+        wine bottle:908
+        water bottle:899
+        pop bottle, soda bottle:738
+        pill bottle:721
+    bag
+        plastic bag:729
+        sleeping bag:798
+        mailbag, postbag:637
+        backpack, back pack, knapsack, packsack, rucksack, haversack:415
+        purse:749
+    others
+        whistle:903
+        electric fan, blower:546
+        mousetrap:675
+        oxygen mask:692
+        sunglass:837
+        sunglasses, dark glasses, shades:838
+        pencil box, pencil case:710
+        wallet, billfold, notecase, pocketbook:894
+        thimble:856
+        necklace:680
+        comic book:918
+        nipple:681
+        bottlecap:456
+        umbrella:880
+        Band Aid:420
+        hamper:589
+        shopping basket:791
+        packet:693
+        envelope:550
+        piggy bank, penny bank:720
+        shopping cart:792

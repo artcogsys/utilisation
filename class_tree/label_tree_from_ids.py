@@ -18,6 +18,7 @@ with open('words.txt') as f:
 
 node_dict = dict()
 
+
 def get_node(node_id):
     if node_id not in node_dict:
         node = Node(node_id)
@@ -27,11 +28,11 @@ def get_node(node_id):
         node = node_dict[node_id]
     return node
 
+
 for hierarchy_pair in hierarchy_pairs:
     parent_id, child_id = hierarchy_pair
     child, parent = get_node(child_id), get_node(parent_id)
     child.parent = parent
-
 
 with open('label_ids.txt') as f:
     raw_label_ids = f.readlines()
@@ -51,12 +52,17 @@ for name, idx, classifier_id in label_ids:
         node = node.parent
     root_nodes[child_node.idx] = child_node
 
+class_tree_file = open("class_tree.txt", "r+")
+
 
 def travers_depth_first(node, depth):
-    print (" " * depth * 4) + (node.name) +  ("" if node.classifier_id is None else ":" + node.classifier_id)
+    class_tree_file.write(
+        (" " * depth * 4) + (node.name) + ("" if node.classifier_id is None else ":" + node.classifier_id) + "\n")
     for child_node in node.accepted_children.values():
         travers_depth_first(child_node, depth + 1)
 
 
 for root_node in root_nodes.values():
     travers_depth_first(root_node, 0)
+
+class_tree_file.close()
