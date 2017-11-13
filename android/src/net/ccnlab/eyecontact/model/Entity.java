@@ -15,7 +15,7 @@ public class Entity {
     }
 
     public Entity(String name) {
-        this(name, -1, -1);
+        this(name, -4, -1);
     }
 
     public Entity(String name, int level, int classId) {
@@ -63,5 +63,13 @@ public class Entity {
 
     public void addChild(Entity child) {
         subEntities.add(child);
+    }
+
+    public boolean hasClassId() {
+        return this.classId != -1;
+    }
+    @Override
+    public String toString() {
+        return name;
     }
 }
