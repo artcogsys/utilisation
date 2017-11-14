@@ -10,6 +10,7 @@ import net.ccnlab.eyecontact.env.Logger;
 import net.ccnlab.eyecontact.model.ClassificationResult;
 
 import java.util.List;
+import java.util.Locale;
 
 public class ClassificationResultView extends AccessibilityUpdatingTextView implements ResultsView<ClassificationResult> {
 
@@ -33,7 +34,7 @@ public class ClassificationResultView extends AccessibilityUpdatingTextView impl
 
         if (results != null) {
             for (final ClassificationResult recog : results) {
-                sb.append(recog.getTitle()).append('\n');
+                sb.append(String.format(Locale.ENGLISH,"%s: %.2f", recog.getTitle(), recog.getConfidence())).append('\n');
                 LOGGER.i("%s: %.2f", recog.getTitle(), recog.getConfidence());
             }
             handler.post(new Runnable() {

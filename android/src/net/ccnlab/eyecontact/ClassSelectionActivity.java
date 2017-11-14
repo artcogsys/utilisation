@@ -58,6 +58,7 @@ public class ClassSelectionActivity extends ListActivity {
 
     private void startClassifierActivity(int classId){
         Intent intent = new Intent(this, ClassifierActivity.class);
+        intent.putExtra("classId", classId);
         startActivity(intent);
     }
 
