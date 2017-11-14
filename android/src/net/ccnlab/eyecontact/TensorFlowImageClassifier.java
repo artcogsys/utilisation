@@ -38,7 +38,7 @@ public class TensorFlowImageClassifier implements Classifier {
 
     // Only return this many results with at least this confidence.
     private static final float THRESHOLD = 0.6f;
-
+    private Integer classIdToFind;
     // Config values.
     private String inputName;
     private String localizedLabelOutputName;
@@ -89,7 +89,8 @@ public class TensorFlowImageClassifier implements Classifier {
             float imageStd,
             String inputName,
             String classificationOutputName,
-            String localizedLabelOutputName) {
+            String localizedLabelOutputName,
+            Integer classIdToFind) {
         TensorFlowImageClassifier c = new TensorFlowImageClassifier();
         c.inputName = inputName;
         c.localizedLabelOutputName = localizedLabelOutputName;
@@ -111,7 +112,7 @@ public class TensorFlowImageClassifier implements Classifier {
         c.outputNames = new String[]{classificationOutputName};
         c.intValues = new int[inputSize * inputSize];
         c.floatValues = new float[inputSize * inputSize * 3];
-
+        c.classIdToFind = classIdToFind;
         return c;
     }
 
@@ -150,7 +151,8 @@ public class TensorFlowImageClassifier implements Classifier {
 
         Trace.beginSection("setResults");
 
-        ResultsContainer resultsContainer = new ResultsContainer(classificationLabelNames, localizedLabelNames);
+        ResultsContainer resultsContainer = new ResultsContainer(classificationLabelNames,
+                localizedLabelNames, classIdToFind);
         resultsContainer.setClassificationResults(classificationOutputs);
 //        resultsContainer.setLocalizedLabelResults(localizedLabelOutputs);
 

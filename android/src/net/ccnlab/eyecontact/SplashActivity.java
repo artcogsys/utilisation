@@ -10,9 +10,8 @@ public class SplashActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        self = this;
         super.onCreate(savedInstanceState);
-        Intent intent = new Intent(this, ClassifierActivity.class);
+        Intent intent = new Intent(this, ClassSelectionActivity.class);
         startActivity(intent);
         finish();
     }
@@ -20,6 +19,5 @@ public class SplashActivity extends Activity {
     @Override
     public void finish() {
         super.finish();
-        self = null;
     }
 }

@@ -20,11 +20,14 @@ public class ResultsContainer {
     Vector<String> classificationLabelNames;
     Vector<String> localizedLabelNames;
 
-    public ResultsContainer(Vector<String> classificationLabelNames, Vector<String> localizedLabelNames) {
+    private Integer classIdToFind;
+
+    public ResultsContainer(Vector<String> classificationLabelNames, Vector<String> localizedLabelNames, Integer classIdToFind) {
         this.classificationLabelNames = classificationLabelNames;
         this.localizedLabelNames = localizedLabelNames;
         this.classifications = new ArrayList<>();
         this.localizedLabels = new ArrayList<>();
+        this.classIdToFind = classIdToFind;
     }
 
     public void setLocalizedLabelResults(float[] outputs) {
@@ -43,29 +46,10 @@ public class ResultsContainer {
     }
 
     public void setClassificationResults(float[] outputs) {
-        PriorityQueue<ClassificationResult> pq =
-                new PriorityQueue<>(
-                        3,
-                        new Comparator<ClassificationResult>() {
-                            @Override
-                            public int compare(ClassificationResult lhs, ClassificationResult rhs) {
-                                // Intentionally reversed to put high confidence at the head of the queue.
-                                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
-                            }
-                        });
-        for (int i = 0; i < outputs.length; ++i) {
-//            if (outputs[i] > CLASSIFICATION_THRESHOLD) {
-                pq.add(
-                        new ClassificationResult(
-                                "" + i, classificationLabelNames.get(i), outputs[i]));
-//            }
-        }
-        int recognitionsSize = Math.min(pq.size(), MAX_CLASSIFICATION_RESULTS);
-        for (int i = 0; i < recognitionsSize; ++i) {
-            ClassificationResult result = pq.poll();
-            classifications.add(result);
-            LOGGER.i(result.getTitle());
-        }
+        classifications.add(new ClassificationResult(
+                "" + this.classIdToFind,
+                classificationLabelNames.get(this.classIdToFind),
+                outputs[this.classIdToFind]));
     }
 
     public List<ClassificationResult> getClassifications() {

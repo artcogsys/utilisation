@@ -71,7 +71,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     private static final float IMAGE_STD = 128;
     private static final String INPUT_NAME = "Placeholder";
 
-    private static final String CLASSIFICATION_OUTPUT_NAME = "InceptionV3/Logits/SpatialSqueeze";
+//    private static final String CLASSIFICATION_OUTPUT_NAME = "InceptionV3/Logits/SpatialSqueeze";
+    private static final String CLASSIFICATION_OUTPUT_NAME = "Softmax";
     private static final String LOCALIZED_OUTPUT_NAME = "segmentation/Sigmoid";
 
     private static final String CLASSIFICATION_LABEL_NAME_FILE = "file:///android_asset/imagenet_slim_labels.txt";
@@ -112,6 +113,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
         LOGGER.i("creating the classifier");
+        Integer classIdToFind = getIntent().getIntExtra("classId", -1);
+        classIdToFind = (classIdToFind == -1 ? null : classIdToFind);
         classifier =
                 TensorFlowImageClassifier.create(
                         getAssets(),
@@ -123,7 +126,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                         IMAGE_STD,
                         INPUT_NAME,
                         CLASSIFICATION_OUTPUT_NAME,
-                        LOCALIZED_OUTPUT_NAME);
+                        LOCALIZED_OUTPUT_NAME,
+                        classIdToFind);
         LOGGER.i("created the classifier");
         previewWidth = size.getWidth();
         previewHeight = size.getHeight();

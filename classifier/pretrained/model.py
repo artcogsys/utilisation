@@ -21,6 +21,7 @@ class InceptionV3ADE20K:
 
             self.spatial_features = self.graph.get_tensor_by_name('InceptionV3/InceptionV3/Mixed_7c/concat:0')
             self.outputs = self.graph.get_tensor_by_name('InceptionV3/Logits/SpatialSqueeze:0')
+            self.softmax_outputs = tf.nn.softmax(self.outputs)
             self.spatial_logits, self.spatial_outputs = self.get_segmentation_tensor()
             self.flattened_spatial_outputs = self.get_flattened_segmentation_tensor()
 

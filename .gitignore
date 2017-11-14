@@ -46,7 +46,6 @@ android/gradlew
 android/gradlew.bat
 android/libs/
 android/gradleBuild/
-android/assets/*.pb
 
 *pyc
 
@@ -58,6 +57,7 @@ android/assets/*.pb
 
 *.pb
 *.mat
+!android/assets/*
 
 .DS_Store
 **/data/
