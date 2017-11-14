@@ -80,13 +80,11 @@ clothing, wear, wearable, textile
         poncho:736
         fur coat:569
         lab coat, laboratory coat:618
-        raincoat, waterproof
         trench coat:870
     footwear
         sock:807
         maillot:639
         Christmas stocking:497
-        shoe
         Loafer:631
         sandal:775
         running shoe:771
@@ -244,7 +242,6 @@ food
         broccoli:938
         head cabbage:937
         cauliflower:939
-        solanaceous vegetable
         bell pepper:946
     fruit
         custard apple:957
