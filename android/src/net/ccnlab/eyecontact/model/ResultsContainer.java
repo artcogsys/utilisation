@@ -21,13 +21,16 @@ public class ResultsContainer {
     Vector<String> localizedLabelNames;
 
     private Integer classIdToFind;
+    private String labelOfClassToFind;
 
-    public ResultsContainer(Vector<String> classificationLabelNames, Vector<String> localizedLabelNames, Integer classIdToFind) {
+    public ResultsContainer(Vector<String> classificationLabelNames, Vector<String> localizedLabelNames,
+                            Integer classIdToFind, String labelOfClassToFind) {
         this.classificationLabelNames = classificationLabelNames;
         this.localizedLabelNames = localizedLabelNames;
         this.classifications = new ArrayList<>();
         this.localizedLabels = new ArrayList<>();
         this.classIdToFind = classIdToFind;
+        this.labelOfClassToFind = labelOfClassToFind;
     }
 
     public void setLocalizedLabelResults(float[] outputs) {
@@ -48,7 +51,7 @@ public class ResultsContainer {
     public void setClassificationResults(float[] outputs) {
         classifications.add(new ClassificationResult(
                 "" + this.classIdToFind,
-                classificationLabelNames.get(this.classIdToFind),
+                this.labelOfClassToFind,
                 outputs[this.classIdToFind]));
     }
 

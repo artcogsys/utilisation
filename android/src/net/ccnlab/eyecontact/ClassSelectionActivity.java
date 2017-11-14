@@ -45,7 +45,7 @@ public class ClassSelectionActivity extends ListActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Entity clickedEntity = currentEntity.getSubEntities().get(position);
                 if(clickedEntity.hasClassId()) {
-                    startClassifierActivity(clickedEntity.getClassId());
+                    startClassifierActivity(clickedEntity);
                 } else {
                     displayEntity(clickedEntity);
                 }
@@ -56,9 +56,10 @@ public class ClassSelectionActivity extends ListActivity {
         displayEntity(rootEntity);
     }
 
-    private void startClassifierActivity(int classId){
+    private void startClassifierActivity(Entity entityToFind){
         Intent intent = new Intent(this, ClassifierActivity.class);
-        intent.putExtra("classId", classId);
+        intent.putExtra("classId", entityToFind.getClassId());
+        intent.putExtra("classLabel", entityToFind.getName());
         startActivity(intent);
     }
 

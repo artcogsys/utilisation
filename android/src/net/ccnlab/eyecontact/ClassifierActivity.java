@@ -115,6 +115,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
         LOGGER.i("creating the classifier");
         Integer classIdToFind = getIntent().getIntExtra("classId", -1);
         classIdToFind = (classIdToFind == -1 ? null : classIdToFind);
+        String classLabel = getIntent().getStringExtra("classLabel");
         classifier =
                 TensorFlowImageClassifier.create(
                         getAssets(),
@@ -127,7 +128,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                         INPUT_NAME,
                         CLASSIFICATION_OUTPUT_NAME,
                         LOCALIZED_OUTPUT_NAME,
-                        classIdToFind);
+                        classIdToFind,
+                        classLabel);
         LOGGER.i("created the classifier");
         previewWidth = size.getWidth();
         previewHeight = size.getHeight();
