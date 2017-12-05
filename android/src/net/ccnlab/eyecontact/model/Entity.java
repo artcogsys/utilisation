@@ -6,21 +6,23 @@ import java.util.List;
 public class Entity {
     private Entity parent;
     private List<Entity> subEntities;
-    private String name;
+    private String fullName;
     private int classId;
     private int level;
+    private String firstName;
+    private String[] synonyms;
 
     public Entity() {
         this.subEntities = new ArrayList<>();
     }
 
-    public Entity(String name) {
-        this(name, -4, -1);
+    public Entity(String fullName) {
+        this(fullName, -4, -1);
     }
 
-    public Entity(String name, int level, int classId) {
+    public Entity(String fullName, int level, int classId) {
         this();
-        this.name = name;
+        setFullName(fullName);
         this.level = level;
         this.classId = classId;
     }
@@ -37,12 +39,33 @@ public class Entity {
         return subEntities;
     }
 
-    public String getName() {
-        return name;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+        String[] tempAllNames = fullName.split(",");
+        this.synonyms = new String[tempAllNames.length - 1];
+        boolean first = true;
+        int synonymIndex = 0;
+        for (String name : tempAllNames) {
+            if (first) {
+                first = false;
+                this.firstName = name.trim();
+            } else {
+                this.synonyms[synonymIndex] = name.trim();
+                synonymIndex += 1;
+            }
+        }
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String[] getSynonyms() {
+        return synonyms;
     }
 
     public int getClassId() {
@@ -70,6 +93,6 @@ public class Entity {
     }
     @Override
     public String toString() {
-        return name;
+        return fullName;
     }
 }

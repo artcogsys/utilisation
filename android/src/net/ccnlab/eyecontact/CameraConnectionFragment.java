@@ -254,6 +254,7 @@ public class CameraConnectionFragment extends Fragment {
             }
           });
     }
+
   }
 
   /**

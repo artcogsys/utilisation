@@ -1,6 +1,9 @@
 package net.ccnlab.eyecontact;
 
 import android.app.ListActivity;
+import android.app.VoiceInteractor;
+import android.app.VoiceInteractor.PickOptionRequest;
+import android.app.VoiceInteractor.PickOptionRequest.Option;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -13,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.List;
 
 // @TODO: Navigation is hacky, but it works. There needs to be a better way to do it.
 public class ClassSelectionActivity extends ListActivity {
@@ -28,6 +30,7 @@ public class ClassSelectionActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_class_selection);
         rootEntity = null;
+
         try {
             rootEntity = this.initializeClasses();
         } catch (IOException e) {
@@ -44,32 +47,36 @@ public class ClassSelectionActivity extends ListActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Entity clickedEntity = currentEntity.getSubEntities().get(position);
-                if(clickedEntity.hasClassId()) {
-                    startClassifierActivity(clickedEntity);
-                } else {
-                    displayEntity(clickedEntity);
-                }
+                doRouting(clickedEntity);
             }
         });
 
         setListAdapter(entityArrayAdapter);
-        displayEntity(rootEntity);
+        doRouting(rootEntity);
+
     }
 
-    private void startClassifierActivity(Entity entityToFind){
+    private void doRouting(Entity clickedEntity) {
+        if (clickedEntity.hasClassId()) {
+            startClassifierActivity(clickedEntity);
+        } else {
+            displayEntity(clickedEntity);
+        }
+    }
+
+    private void startClassifierActivity(Entity entityToFind) {
         Intent intent = new Intent(this, ClassifierActivity.class);
         intent.putExtra("classId", entityToFind.getClassId());
-        intent.putExtra("classLabel", entityToFind.getName());
+        intent.putExtra("classLabel", entityToFind.getFullName());
         startActivity(intent);
     }
-
 
     @Override
     public void onBackPressed() {
         if (currentEntity.equals(rootEntity)) {
             super.onBackPressed();
         } else {
-            displayEntity(currentEntity.getParent());
+            doRouting(currentEntity.getParent());
         }
     }
 
@@ -77,12 +84,36 @@ public class ClassSelectionActivity extends ListActivity {
         entityArrayAdapter.clear();
         entityArrayAdapter.addAll(entity.getSubEntities());
         currentEntity = entity;
+        if (isVoiceInteraction()) {
+            for (VoiceInteractor.Request voiceInteractorRequest : getVoiceInteractor().getActiveRequests()) {
+                voiceInteractorRequest.cancel();
+            }
+            createVoiceInteractorRequest(currentEntity);
+        }
     }
 
+    private void createVoiceInteractorRequest(Entity entity) {
+        int index = 0;
+        Option[] options = new Option[entity.getSubEntities().size()];
+        for (Entity subEntity : entity.getSubEntities()) {
+            Option option = new Option(subEntity.getFirstName(), index);
+            for (String synonym : subEntity.getSynonyms()) {
+                option.addSynonym(synonym);
+            }
+            options[index] = option;
+            index += 1;
+        }
+        getVoiceInteractor().submitRequest(new PickOptionRequest(new VoiceInteractor.Prompt("Choose a class"), options, null) {
+            @Override
+            public void onPickOptionResult(boolean finished, Option[] selections, Bundle result) {
+                if (finished && selections.length == 1) {
+                    doRouting(currentEntity.getSubEntities().get(selections[0].getIndex()));
+                }
+            }
+        });
+    }
 
-
-
-    private Entity initializeClasses() throws IOException{
+    private Entity initializeClasses() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(getAssets().open("class_tree.txt")));
         String line;
 

@@ -80,8 +80,8 @@ android {
     if (nativeBuildSystem == 'cmake') {
         defaultConfig {
             applicationId = 'net.ccnlab.eyecontact'
-            minSdkVersion 21
-            targetSdkVersion 23
+            minSdkVersion 23
+            targetSdkVersion 27
             ndk {
                 abiFilters "${cpuType}"
             }

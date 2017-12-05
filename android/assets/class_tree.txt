@@ -79,7 +79,6 @@ clothing, wear, wearable, textile
     winter clothing
         poncho:736
         fur coat:569
-        lab coat, laboratory coat:618
         trench coat:870
     footwear
         sock:807
@@ -124,6 +123,7 @@ clothing, wear, wearable, textile
         mask:644
         wig:904
         military uniform:653
+        lab coat, laboratory coat:618
 home
     kitchen
         refrigerator, icebox:761
