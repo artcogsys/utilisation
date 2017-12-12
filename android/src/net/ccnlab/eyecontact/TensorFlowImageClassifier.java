@@ -18,17 +18,12 @@ package net.ccnlab.eyecontact;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.os.Trace;
-import android.util.Log;
 
-import net.ccnlab.eyecontact.model.ResultsContainer;
+import net.ccnlab.eyecontact.model.ClassificationResult;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Vector;
-
-import org.tensorflow.Operation;
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
+
+import java.io.IOException;
 
 /**
  * A classifier specialized to label images using TensorFlow.
@@ -36,25 +31,20 @@ import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 public class TensorFlowImageClassifier implements Classifier {
     private static final String TAG = "ImageClassifier";
 
-    // Only return this many results with at least this confidence.
-    private static final float THRESHOLD = 0.6f;
-    private Integer classIdToFind;
-    private String labelOfClassToFind;
+
+    private int[] classIdsToFind;
+    private String classLabel;
     // Config values.
     private String inputName;
-    private String localizedLabelOutputName;
     private String classificationOutputName;
     private int inputSize;
     private int imageMean;
     private float imageStd;
 
     // Pre-allocated buffers.
-    private Vector<String> localizedLabelNames = new Vector<String>();
-    private Vector<String> classificationLabelNames = new Vector<String>();
     private int[] intValues;
     private float[] floatValues;
-    private float[] localizedLabelOutputs;
-    private float[] classificationOutputs;
+    private float[] classificationOutput;
 
     private String[] outputNames;
 
@@ -68,43 +58,30 @@ public class TensorFlowImageClassifier implements Classifier {
     /**
      * Initializes a native TensorFlow session for classifying images.
      *
-     * @param assetManager  The asset manager to be used to load assets.
-     * @param modelFilename The filepath of the model GraphDef protocol buffer.
-     * @param classificationLabelNameFilename The filepath of label file for classes.
-     * @param localizedLabelNameFilename The filepath of label file for localized labels.
-     * @param inputSize     The input size. A square image of inputSize x inputSize is assumed.
-     * @param imageMean     The assumed mean of the image values.
-     * @param imageStd      The assumed std of the image values.
-     * @param inputName     The label of the image input node.
-     * @param classificationOutputName    The label of the classification output node.
-     * @param localizedLabelOutputName    The label of the localized label output node.
+     * @param assetManager             The asset manager to be used to load assets.
+     * @param modelFilename            The filepath of the model GraphDef protocol buffer.
+     * @param inputSize                The input size. A square image of inputSize x inputSize is assumed.
+     * @param imageMean                The assumed mean of the image values.
+     * @param imageStd                 The assumed std of the image values.
+     * @param inputName                The label of the image input node.
+     * @param classificationOutputName The label of the classification output node.
      * @throws IOException
      */
     public static Classifier create(
             AssetManager assetManager,
             String modelFilename,
-            String classificationLabelNameFilename,
-            String localizedLabelNameFilename,
             int inputSize,
             int imageMean,
             float imageStd,
             String inputName,
             String classificationOutputName,
-            String localizedLabelOutputName,
-            Integer classIdToFind,
+            int[] classIdsToFind,
             String classLabel) {
         TensorFlowImageClassifier c = new TensorFlowImageClassifier();
         c.inputName = inputName;
-        c.localizedLabelOutputName = localizedLabelOutputName;
         c.classificationOutputName = classificationOutputName;
 
-        setLabels(classificationLabelNameFilename, c.classificationLabelNames, assetManager);
-        setLabels(localizedLabelNameFilename, c.localizedLabelNames, assetManager);
-
         c.inferenceInterface = new TensorFlowInferenceInterface(assetManager, modelFilename);
-
-        c.localizedLabelOutputs = getOutputBuffer(localizedLabelOutputName, c.inferenceInterface, 4);
-        c.classificationOutputs = getOutputBuffer(classificationOutputName, c.inferenceInterface, 2);
 
         c.inputSize = inputSize;
         c.imageMean = imageMean;
@@ -114,13 +91,14 @@ public class TensorFlowImageClassifier implements Classifier {
         c.outputNames = new String[]{classificationOutputName};
         c.intValues = new int[inputSize * inputSize];
         c.floatValues = new float[inputSize * inputSize * 3];
-        c.classIdToFind = classIdToFind;
-        c.labelOfClassToFind = classLabel;
+        c.classIdsToFind = classIdsToFind;
+        c.classLabel = classLabel;
+        c.classificationOutput = new float[1];
         return c;
     }
 
     @Override
-    public ResultsContainer recognizeImage(final Bitmap bitmap) {
+    public ClassificationResult recognizeImage(final Bitmap bitmap) {
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage");
 
@@ -139,6 +117,7 @@ public class TensorFlowImageClassifier implements Classifier {
         // Copy the input data into TensorFlow.
         Trace.beginSection("feed");
         inferenceInterface.feed(inputName, floatValues, 1, inputSize, inputSize, 3);
+        inferenceInterface.feed("aggregated_class_output/Placeholder", classIdsToFind, classIdsToFind.length);
         Trace.endSection();
 
         // Run the inference call.
@@ -148,22 +127,15 @@ public class TensorFlowImageClassifier implements Classifier {
 
         // Copy the output Tensor back into the output array.
         Trace.beginSection("fetch");
-//        inferenceInterface.fetch(localizedLabelOutputName, localizedLabelOutputs);
-        inferenceInterface.fetch(classificationOutputName, classificationOutputs);
+        inferenceInterface.fetch(classificationOutputName, classificationOutput);
         Trace.endSection();
 
         Trace.beginSection("setResults");
 
-        ResultsContainer resultsContainer = new ResultsContainer(classificationLabelNames,
-                localizedLabelNames, classIdToFind, labelOfClassToFind);
-        resultsContainer.setClassificationResults(classificationOutputs);
-//        resultsContainer.setLocalizedLabelResults(localizedLabelOutputs);
-
         Trace.endSection();
 
-
         Trace.endSection(); // "recognizeImage"
-        return resultsContainer;
+        return new ClassificationResult(classLabel, classificationOutput[0]);
     }
 
     @Override
@@ -179,37 +151,5 @@ public class TensorFlowImageClassifier implements Classifier {
     @Override
     public void close() {
         inferenceInterface.close();
-    }
-
-    private static void setLabels(String filename, Vector<String> buffer, AssetManager assetManager) {
-        String actualFilename = filename.split("file:///android_asset/")[1];
-        Log.i(TAG, "Reading label names from: " + actualFilename);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new InputStreamReader(assetManager.open(actualFilename)));
-            String line;
-            while ((line = br.readLine()) != null) {
-                buffer.add(line);
-            }
-            br.close();
-        } catch (IOException e) {
-            throw new RuntimeException("Problem reading label file!", e);
-        }
-    }
-
-    // Does not support partially known dimensions.
-    private static float[] getOutputBuffer(String operationName, TensorFlowInferenceInterface inferenceInterface, int dimensionCount) {
-        Log.i(TAG, "creating output buffers for: " + operationName);
-
-        final Operation operation = inferenceInterface.graphOperation(operationName);
-        Log.i(TAG, "got operation for name: " + operationName);
-        int shape = 1;
-        int dim = 0;
-        while (dim < dimensionCount) {
-            shape *= (int) operation.output(0).shape().size(dim);
-            dim++;
-        }
-
-        return new float[shape];
     }
 }

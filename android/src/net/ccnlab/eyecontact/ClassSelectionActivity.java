@@ -17,7 +17,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-// @TODO: Navigation is hacky, but it works. There needs to be a better way to do it.
+
+// @TODO: Navigation is hacky, but it works. There might be a better way to do it.
 public class ClassSelectionActivity extends ListActivity {
 
     Entity currentEntity;
@@ -46,7 +47,12 @@ public class ClassSelectionActivity extends ListActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Entity clickedEntity = currentEntity.getSubEntities().get(position);
+                Entity clickedEntity;
+                if (position < currentEntity.getSubEntities().size()) {
+                    clickedEntity = currentEntity.getSubEntities().get(position);
+                } else {
+                    clickedEntity = currentEntity;
+                }
                 doRouting(clickedEntity);
             }
         });
@@ -57,7 +63,7 @@ public class ClassSelectionActivity extends ListActivity {
     }
 
     private void doRouting(Entity clickedEntity) {
-        if (clickedEntity.hasClassId()) {
+        if (clickedEntity == currentEntity || clickedEntity.hasClassId()) {
             startClassifierActivity(clickedEntity);
         } else {
             displayEntity(clickedEntity);
@@ -66,7 +72,7 @@ public class ClassSelectionActivity extends ListActivity {
 
     private void startClassifierActivity(Entity entityToFind) {
         Intent intent = new Intent(this, ClassifierActivity.class);
-        intent.putExtra("classId", entityToFind.getClassId());
+        intent.putExtra("classIds", entityToFind.getClassIds());
         intent.putExtra("classLabel", entityToFind.getFullName());
         startActivity(intent);
     }
@@ -83,6 +89,9 @@ public class ClassSelectionActivity extends ListActivity {
     private void displayEntity(Entity entity) {
         entityArrayAdapter.clear();
         entityArrayAdapter.addAll(entity.getSubEntities());
+        if (entity != rootEntity) {
+            entityArrayAdapter.add(entity);
+        }
         currentEntity = entity;
         if (isVoiceInteraction()) {
             for (VoiceInteractor.Request voiceInteractorRequest : getVoiceInteractor().getActiveRequests()) {
@@ -103,7 +112,9 @@ public class ClassSelectionActivity extends ListActivity {
             options[index] = option;
             index += 1;
         }
-        getVoiceInteractor().submitRequest(new PickOptionRequest(new VoiceInteractor.Prompt("Choose a class"), options, null) {
+
+        Bundle status = new Bundle();
+        getVoiceInteractor().submitRequest(new PickOptionRequest(new VoiceInteractor.Prompt(getEntityPrompt(entity)), options, status) {
             @Override
             public void onPickOptionResult(boolean finished, Option[] selections, Bundle result) {
                 if (finished && selections.length == 1) {
@@ -111,6 +122,18 @@ public class ClassSelectionActivity extends ListActivity {
                 }
             }
         });
+    }
+
+    private String getEntityPrompt(Entity entity) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Choose a class from");
+        for (Entity subEntity : entity.getSubEntities()) {
+            sb.append(",").append(subEntity.getFirstName());
+        }
+        if (entity != rootEntity) {
+            sb.append(",").append(entity.getFirstName());
+        }
+        return sb.toString();
     }
 
     private Entity initializeClasses() throws IOException {

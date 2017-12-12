@@ -15,7 +15,6 @@ import java.util.Locale;
 public class ClassificationResultView extends AccessibilityUpdatingTextView implements ResultsView<ClassificationResult> {
 
     private final Logger LOGGER = new Logger();
-    private final StringBuilder sb = new StringBuilder();
     private Handler handler;
     public ClassificationResultView(final Context context, final AttributeSet set) {
         super(context, set);
@@ -28,19 +27,14 @@ public class ClassificationResultView extends AccessibilityUpdatingTextView impl
     }
 
     @Override
-    public void setResults(final List<ClassificationResult> results) {
-        sb.setLength(0);
-        sb.trimToSize();
-
-        if (results != null) {
-            for (final ClassificationResult recog : results) {
-                sb.append(String.format(Locale.ENGLISH,"%s: %.2f", recog.getTitle(), recog.getConfidence())).append('\n');
-                LOGGER.i("%s: %.2f", recog.getTitle(), recog.getConfidence());
-            }
+    public void setResults(final ClassificationResult result) {
+        if (result != null) {
+            LOGGER.i("%s: %.2f", result.getTitle(), result.getConfidence());
+            final String resultString = String.format(Locale.ENGLISH,"%.2f", result.getConfidence());
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    setText(sb.toString());
+                    setText(resultString);
                 }
             });
         }

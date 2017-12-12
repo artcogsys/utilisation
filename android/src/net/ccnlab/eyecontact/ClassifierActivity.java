@@ -34,14 +34,12 @@ import net.ccnlab.eyecontact.env.BorderedText;
 import net.ccnlab.eyecontact.env.ImageUtils;
 import net.ccnlab.eyecontact.env.Logger;
 import net.ccnlab.eyecontact.model.ClassificationResult;
-import net.ccnlab.eyecontact.model.ResultsContainer;
 
 public class ClassifierActivity extends CameraActivity implements OnImageAvailableListener {
     private static final Logger LOGGER = new Logger();
 
     protected static final boolean SAVE_PREVIEW_BITMAP = false;
 
-    private LocalizedGridResultView localizedGridResultsView;
     private ClassificationResultView classificationResultView;
 
     private Bitmap rgbFrameBitmap = null;
@@ -72,11 +70,7 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     private static final String INPUT_NAME = "Placeholder";
 
 //    private static final String CLASSIFICATION_OUTPUT_NAME = "InceptionV3/Logits/SpatialSqueeze";
-    private static final String CLASSIFICATION_OUTPUT_NAME = "Softmax";
-    private static final String LOCALIZED_OUTPUT_NAME = "segmentation/Sigmoid";
-
-    private static final String CLASSIFICATION_LABEL_NAME_FILE = "file:///android_asset/imagenet_slim_labels.txt";
-    private static final String LOCALIZED_LABEL_NAME_FILE = "file:///android_asset/objectInfo150.txt";
+    private static final String CLASSIFICATION_OUTPUT_NAME = "aggregated_class_output/Sum";
 
     private static final String MODEL_FILE = "file:///android_asset/inception_v3_ade.pb";
 
@@ -113,22 +107,19 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
         borderedText = new BorderedText(textSizePx);
         borderedText.setTypeface(Typeface.MONOSPACE);
         LOGGER.i("creating the classifier");
-        Integer classIdToFind = getIntent().getIntExtra("classId", -1);
-        classIdToFind = (classIdToFind == -1 ? null : classIdToFind);
+        int[] classIdsToFind = getIntent().getIntArrayExtra("classIds");
+
         String classLabel = getIntent().getStringExtra("classLabel");
         classifier =
                 TensorFlowImageClassifier.create(
                         getAssets(),
                         MODEL_FILE,
-                        CLASSIFICATION_LABEL_NAME_FILE,
-                        LOCALIZED_LABEL_NAME_FILE,
                         INPUT_SIZE,
                         IMAGE_MEAN,
                         IMAGE_STD,
                         INPUT_NAME,
                         CLASSIFICATION_OUTPUT_NAME,
-                        LOCALIZED_OUTPUT_NAME,
-                        classIdToFind,
+                        classIdsToFind,
                         classLabel);
         LOGGER.i("created the classifier");
         previewWidth = size.getWidth();
@@ -178,19 +169,15 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
                     @Override
                     public void run() {
                         final long startTime = SystemClock.uptimeMillis();
-                        final ResultsContainer results = classifier.recognizeImage(croppedBitmap);
+                        final ClassificationResult results = classifier.recognizeImage(croppedBitmap);
                         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
                         LOGGER.i("Detect: %s", results);
                         cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
-//                        if (localizedGridResultsView == null) {
-//                            localizedGridResultsView = (LocalizedGridResultView) findViewById(R.id.localized_grid_results);
-//                        }
-//                        localizedGridResultsView.setResults(results.getLocalizedLabels());
 
                         if (classificationResultView == null) {
                             classificationResultView = (ClassificationResultView) findViewById(R.id.classification_result_view);
                         }
-                        classificationResultView.setResults(results.getClassifications());
+                        classificationResultView.setResults(results);
                         requestRender();
                         readyForNextImage();
                     }

@@ -18,5 +18,5 @@ package net.ccnlab.eyecontact;
 import java.util.List;
 
 public interface ResultsView<T> {
-  public void setResults(final List<T> results);
+  public void setResults(final T results);
 }

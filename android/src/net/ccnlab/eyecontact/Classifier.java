@@ -16,11 +16,8 @@ limitations under the License.
 package net.ccnlab.eyecontact;
 
 import android.graphics.Bitmap;
-import android.graphics.RectF;
 
-import net.ccnlab.eyecontact.model.ResultsContainer;
-
-import java.util.List;
+import net.ccnlab.eyecontact.model.ClassificationResult;
 
 /**
  * Generic interface for interacting with different recognition engines.
@@ -31,7 +28,7 @@ public interface Classifier {
      */
 
 
-    ResultsContainer recognizeImage(Bitmap bitmap);
+    ClassificationResult recognizeImage(Bitmap bitmap);
 
     void enableStatLogging(final boolean debug);
 

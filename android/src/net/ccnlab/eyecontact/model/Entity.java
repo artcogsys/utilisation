@@ -1,6 +1,7 @@
 package net.ccnlab.eyecontact.model;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class Entity {
@@ -68,8 +69,32 @@ public class Entity {
         return synonyms;
     }
 
-    public int getClassId() {
+    public int[] getClassIds(){
+        LinkedList<Integer> subClassIds = new LinkedList<>();
+        aggregateSubClassIds(this, subClassIds);
+        return toIntArray(subClassIds);
+    }
+
+    private int getClassId() {
         return classId;
+    }
+
+    private void aggregateSubClassIds(Entity entity, List<Integer> classIds) {
+        if (entity.getSubEntities().isEmpty()) {
+            classIds.add(entity.getClassId());
+        } else {
+            for (Entity subEntity : entity.getSubEntities()) {
+                aggregateSubClassIds(subEntity, classIds);
+            }
+        }
+    }
+
+    private int[] toIntArray(List<Integer> list)  {
+        int[] ret = new int[list.size()];
+        int i = 0;
+        for (Integer e : list)
+            ret[i++] = e;
+        return ret;
     }
 
     public void setClassId(int classId) {
