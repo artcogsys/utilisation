@@ -22,6 +22,7 @@ class InceptionV3ADE20K:
             self.spatial_features = self.graph.get_tensor_by_name('InceptionV3/InceptionV3/Mixed_7c/concat:0')
             self.outputs = self.graph.get_tensor_by_name('InceptionV3/Logits/SpatialSqueeze:0')
             self.softmax_outputs = tf.nn.softmax(self.outputs)
+            self.aggregated_indices, self.aggregated_outputs = self.get_aggregated_category_results(self.softmax_outputs)
             self.spatial_logits, self.spatial_outputs = self.get_segmentation_tensor()
             self.flattened_spatial_outputs = self.get_flattened_segmentation_tensor()
 
@@ -62,6 +63,12 @@ class InceptionV3ADE20K:
                                     validation_labels],
                            lambda: [training_image_ids, training_images,
                                     training_labels])
+
+    def get_aggregated_category_results(self, softmax_outputs):
+        with tf.variable_scope("aggregated_class_output"):
+            aggregated_indices = tf.placeholder(dtype=tf.int32)
+            aggregated_outputs = tf.reduce_sum(tf.gather(tf.squeeze(softmax_outputs), aggregated_indices))
+            return aggregated_indices, aggregated_outputs
 
     def get_segmentation_tensor(self):
         with tf.variable_scope("segmentation"):
