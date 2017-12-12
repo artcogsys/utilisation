@@ -90,7 +90,8 @@ public class ClassSelectionActivity extends ListActivity {
         entityArrayAdapter.clear();
         entityArrayAdapter.addAll(entity.getSubEntities());
         if (entity != rootEntity) {
-            entityArrayAdapter.add(entity);
+            Entity categorySelectionEntity = new Entity(entity);
+            entityArrayAdapter.add(categorySelectionEntity);
         }
         currentEntity = entity;
         if (isVoiceInteraction()) {

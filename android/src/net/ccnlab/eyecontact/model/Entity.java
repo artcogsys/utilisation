@@ -28,6 +28,19 @@ public class Entity {
         this.classId = classId;
     }
 
+    // Clone Constructor for Category. Really ugly piece of code here.
+    public Entity(Entity entity) {
+        this();
+        this.parent = entity.getParent();
+        this.fullName = "Search everything belonging to, " + entity.getFullName();
+        this.subEntities.clear();
+        this.subEntities.addAll(entity.getSubEntities());
+        this.classId = entity.getClassId();
+        this.level = entity.getLevel();
+        this.firstName = entity.getFirstName();
+        this.synonyms = entity.getSynonyms();
+    }
+
     public Entity getParent() {
         return parent;
     }
@@ -39,6 +52,12 @@ public class Entity {
     public List<Entity> getSubEntities() {
         return subEntities;
     }
+
+    public void setSubEntities(List<Entity> subEntities) {
+        this.subEntities.clear();
+        this.subEntities.addAll((subEntities));
+    }
+
 
     public String getFullName() {
         return fullName;
@@ -69,7 +88,7 @@ public class Entity {
         return synonyms;
     }
 
-    public int[] getClassIds(){
+    public int[] getClassIds() {
         LinkedList<Integer> subClassIds = new LinkedList<>();
         aggregateSubClassIds(this, subClassIds);
         return toIntArray(subClassIds);
@@ -77,6 +96,10 @@ public class Entity {
 
     private int getClassId() {
         return classId;
+    }
+
+    public void setClassId(int classId) {
+        this.classId = classId;
     }
 
     private void aggregateSubClassIds(Entity entity, List<Integer> classIds) {
@@ -89,16 +112,12 @@ public class Entity {
         }
     }
 
-    private int[] toIntArray(List<Integer> list)  {
+    private int[] toIntArray(List<Integer> list) {
         int[] ret = new int[list.size()];
         int i = 0;
         for (Integer e : list)
             ret[i++] = e;
         return ret;
-    }
-
-    public void setClassId(int classId) {
-        this.classId = classId;
     }
 
     public int getLevel() {
@@ -116,6 +135,7 @@ public class Entity {
     public boolean hasClassId() {
         return this.classId != -1;
     }
+
     @Override
     public String toString() {
         return fullName;
