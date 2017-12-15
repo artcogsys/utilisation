@@ -39,18 +39,23 @@ with open('label_ids.txt') as f:
     label_ids = [raw_label_id.strip().split("\t") for raw_label_id in raw_label_ids]
 
 root_nodes = dict()
-for name, idx, classifier_id in label_ids:
-    node = get_node(idx)
-    node.classifier_id = classifier_id
-    child_node = None
-    while node is not None:
-        if child_node is None:
-            pass
-        else:
-            node.accepted_children[child_node.idx] = child_node
-        child_node = node
-        node = node.parent
-    root_nodes[child_node.idx] = child_node
+for label_data in label_ids:
+    if len(label_data) == 3:
+        name, idx, classifier_id = label_data
+        node = get_node(idx)
+        node.classifier_id = classifier_id
+        child_node = None
+        while node is not None:
+            if child_node is None:
+                pass
+            else:
+                node.accepted_children[child_node.idx] = child_node
+            child_node = node
+            node = node.parent
+        root_nodes[child_node.idx] = child_node
+    else:
+        print "skipping data %s because it's not a tuple." % label_data
+
 
 class_tree_file = open("class_tree.txt", "r+")
 
@@ -65,4 +70,5 @@ def travers_depth_first(node, depth):
 for root_node in root_nodes.values():
     travers_depth_first(root_node, 0)
 
+class_tree_file.flush()
 class_tree_file.close()

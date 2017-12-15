@@ -50,14 +50,17 @@ for label, classifier_id in labels:
         print "make a selection for label: %s" % label
         for found_key, found_value, index in zip(found_keys, found_values, range(0, len(found_keys))):
             print "%d -> %s -- %s" % (index, found_key, found_value)
-
-        selection = input("choose an option")
-        if selection != "":
-            selection = int(selection)
-            found_ids.append((label, found_values[selection], classifier_id))
-            label_ids_file.write('%s\t%s\t%d\n' % (label, found_values[selection], classifier_id))
-            print "selected id %s" % (found_values[selection])
+        if len(found_values) != 0:
+            selection = input("choose an option")
+            if selection != "":
+                selection = int(selection)
+                found_ids.append((label, found_values[selection], classifier_id))
+                label_ids_file.write('%s\t%s\t%d\n' % (label, found_values[selection], classifier_id))
+                print "selected id %s" % (found_values[selection])
+            else:
+                re_missing_ids.append((label, classifier_id))
         else:
+            print "skipping %s because we couldn't find it on the list" % label
             re_missing_ids.append((label, classifier_id))
     label_ids_file.flush()
 
