@@ -22,6 +22,7 @@ To train the model using this new data, you need to create a pipeline that can r
 Another way to achieve this is to read those files using python libraries outside tensorflow and providing batches for placeholder variables through the `feed_dict` argument of `session.run`. See the [tensorflow guidelines](https://www.tensorflow.org/api_guides/python/reading_data#Feeding) for more information.
 
 ## 3. Defining the Model
+### 3.1 Extending the existing model
 One very easy way to extend a model is to read the previous model definition from the frozen graph. We have used (and probably invented) this method in `classifier/pretrained/model.py`. This methods works by,
 1. Create a graph object using `tf.Graph()`. Create a `graph.as_default` block and execute the following steps within it.
 2. Adding the input tensors defined in the Data Pipeline section.
@@ -35,6 +36,7 @@ One very easy way to extend a model is to read the previous model definition fro
     * I recommend training only the weight variables that you have defined in step 6. This is useful when you are adding new classes to the existing model.
     * You can also train the whole network. However, if you do that, you must also retrain (or remove) the original outputs (1000 classes from ImageNet and 150 classes from ADE20K) of the model.
 10. Create a training step only for the weight variables that you want to train for. To do that, you should use the `var_list` argument of the `minimize` function of the `optimizer` that you have defined in step 8.
+### 3.2 Creating a binary classifier
 
 ## 4. Training the Model
 Import the graph you have defined into a session and evaluate the training step. Create a `tf.train.Saver` for the variables that you are training and save a checkpoint file at the end.
