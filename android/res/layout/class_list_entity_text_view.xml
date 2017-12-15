@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent">
-    <TextView
+    <net.ccnlab.eyecontact.LIITextView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@id/android:text1"
         android:layout_width="match_parent"
@@ -9,4 +9,5 @@
         android:textSize="24sp"
         android:padding="5dp"
         android:background="#FF009ec8"/>
+
 </RelativeLayout>
