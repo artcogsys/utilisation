@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.TextView;
 
 import net.ccnlab.eyecontact.env.Logger;
@@ -35,6 +36,8 @@ public class ClassificationResultView extends AccessibilityUpdatingTextView impl
                 @Override
                 public void run() {
                     setText(resultString);
+                    requestFocus();
+                    sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
                 }
             });
         }

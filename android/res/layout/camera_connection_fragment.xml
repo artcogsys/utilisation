@@ -23,18 +23,21 @@
         android:id="@+id/texture"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:focusable="false"/>
 
     <net.ccnlab.eyecontact.ClassificationResultView
         android:id="@+id/classification_result_view"
         android:layout_width="match_parent"
         android:layout_height="144dp"
-        android:layout_alignParentTop="true" />
+        android:layout_alignParentTop="true"
+        android:focusable="true"/>
 
     <net.ccnlab.eyecontact.OverlayView
         android:id="@+id/debug_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true" />
+        android:layout_alignParentBottom="true"
+        android:focusable="false"/>
 
 </RelativeLayout>
