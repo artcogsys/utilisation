@@ -4,12 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="net.ccnlab.eyecontact.ClassSelectionActivity">
+    tools:context="net.ccnlab.eyecontact.ClassSelectionActivity"
+    android:background="#FF009ec8">
 
     <ListView
         android:id="@id/android:list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#FF009ec8"
         />
 
 </RelativeLayout>
