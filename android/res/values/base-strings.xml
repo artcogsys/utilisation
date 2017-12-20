@@ -17,6 +17,4 @@
 
 <resources>
     <string name="app_name">EyeContact</string>
-    <string name="activity_name_classification">EyeContact</string>
-    <string name="title_activity_class_selection">EyeContact</string>
 </resources>

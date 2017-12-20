@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="net.ccnlab.eyecontact.ClassSelectionActivity"
-    android:background="#FF009ec8">
+    android:background="#FF009ec8"
+    android:id="@+id/class_selection_relative_layout">
 
     <ListView
         android:id="@id/android:list"

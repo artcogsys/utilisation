@@ -59,12 +59,12 @@
         </activity>
         <activity
             android:name=".ClassSelectionActivity"
-            android:label="@string/title_activity_class_selection"
+            android:label="@string/class_selection_description"
             android:screenOrientation="portrait">
         </activity>
         <activity
             android:name=".ClassifierActivity"
-            android:label="@string/activity_name_classification"
+            android:label="@string/classifier_description"
             android:screenOrientation="portrait">
         </activity>
     </application>
