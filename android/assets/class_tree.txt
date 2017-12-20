@@ -611,7 +611,7 @@ animal
         ice bear, polar bear, Ursus Maritimus, Thalarctos maritimus:297
         American black bear, black bear, Ursus americanus, Euarctos americanus:296
         giant panda, panda, panda bear, coon bear, Ailuropoda melanoleuca:389
-                            lesser panda, red panda, panda, bear cat, cat bear, Ailurus fulgens:388
+        lesser panda, red panda, panda, bear cat, cat bear, Ailurus fulgens:388
     big cat
         jaguar, panther, Panthera onca, Felis onca:291
         lion, king of beasts, Panthera leo:292
