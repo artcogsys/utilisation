@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 
 import net.ccnlab.eyecontact.model.Entity;
 
@@ -25,6 +26,7 @@ public class ClassSelectionActivity extends ListActivity {
     Entity rootEntity;
     EntityArrayAdapter entityArrayAdapter;
     ListView listView;
+    RelativeLayout relativeLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,7 @@ public class ClassSelectionActivity extends ListActivity {
                 new ArrayList<Entity>());
 
         listView = (ListView) findViewById(android.R.id.list);
+        relativeLayout = (RelativeLayout) findViewById(R.id.class_selection_relative_layout);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -59,7 +62,6 @@ public class ClassSelectionActivity extends ListActivity {
 
         setListAdapter(entityArrayAdapter);
         doRouting(rootEntity);
-
     }
 
     private void doRouting(Entity clickedEntity) {
@@ -87,6 +89,7 @@ public class ClassSelectionActivity extends ListActivity {
     }
 
     private void displayEntity(Entity entity) {
+        relativeLayout.requestFocus();
         entityArrayAdapter.clear();
         entityArrayAdapter.addAll(entity.getSubEntities());
         if (entity != rootEntity) {
