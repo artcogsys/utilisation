@@ -31,7 +31,8 @@ public class ClassificationResultView extends AccessibilityUpdatingTextView impl
     public void setResults(final ClassificationResult result) {
         if (result != null) {
             LOGGER.i("%s: %.2f", result.getTitle(), result.getConfidence());
-            final String resultString = String.format(Locale.ENGLISH,"%.2f", result.getConfidence());
+            int scaledConfidence = Math.round(result.getConfidence() * 10);
+            final String resultString = String.format(Locale.ENGLISH,"%d", scaledConfidence);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
