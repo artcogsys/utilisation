@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/drawable/splash_background.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/drawable/splash_background.xml"
+    },
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/drawable/border.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/drawable/border.xml"
+    }
+]

@@ -57,7 +57,7 @@ android*/gradleBuild/
 
 *.pb
 *.mat
-!android/assets/*
+!android*/assets/*
 
 .DS_Store
 **/data/

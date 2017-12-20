@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/layout/class_list_entity_text_view.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/layout/class_list_entity_text_view.xml"
+    },
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/layout/activity_camera.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/layout/activity_camera.xml"
+    },
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/layout/activity_class_selection.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/layout/activity_class_selection.xml"
+    },
+    {
+        "merged": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/gradleBuild/intermediates/res/merged/debug/layout/camera_connection_fragment.xml",
+        "source": "/home/erdi/dev/workspace/tensorflow/tensorflow/utilisation/android/res/layout/camera_connection_fragment.xml"
+    }
+]
