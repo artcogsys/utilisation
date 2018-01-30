@@ -36,6 +36,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
+        maven { url "https://jitpack.io" }
     }
 }
 
@@ -115,10 +116,16 @@ android {
                 java {
                     srcDir '../../contrib/android/java'
                 }
+
             }
             // Android demo app sources.
             java {
                 srcDir 'src'
+            }
+
+            // The sources from the other project
+            java {
+                srcDir '../android_shared/src'
             }
 
             manifest.srcFile 'AndroidManifest.xml'
@@ -185,6 +192,7 @@ apply from: "download-models.gradle"
 
 
 dependencies {
+    compile 'com.github.karlotoy:perfectTune:1.0.2'
     if (nativeBuildSystem == 'cmake' || nativeBuildSystem == 'none') {
         compile 'org.tensorflow:tensorflow-android:+'
     }
