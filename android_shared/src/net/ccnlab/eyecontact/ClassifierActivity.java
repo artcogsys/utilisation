@@ -23,6 +23,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
@@ -149,5 +150,11 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
     public synchronized void onPause() {
         super.onPause();
         classificationResultView.stopTune();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        this.setTitle(String.format(this.getTitle().toString(), getIntent().getStringExtra("classLabel")));
+        super.onCreate(savedInstanceState);
     }
 }
