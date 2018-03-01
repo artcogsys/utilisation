@@ -1,7 +1,7 @@
-keys:multiscale_sigmoid.pb:2
-kitchen utensils:multiscale_sigmoid.pb:6
-paper:multiscale_sigmoid.pb:3
-phone:multiscale_sigmoid.pb:5
-remote control:multiscale_sigmoid.pb:1
-wallet:multiscale_sigmoid.pb:4
-walking stick:multiscale_sigmoid.pb:0
+keys:multiscale_softmax.pb:2
+kitchen utensils:multiscale_softmax.pb:6
+paper:multiscale_softmax.pb:3
+phone:multiscale_softmax.pb:5
+remote control:multiscale_softmax.pb:1
+wallet:multiscale_softmax.pb:4
+walking stick:multiscale_softmax.pb:0
