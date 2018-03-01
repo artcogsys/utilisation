@@ -62,3 +62,5 @@ android*/gradleBuild/
 .DS_Store
 **/data/
 !classifier/pretrained/inception_v3_*.pb
+
+!image_retraining/data
