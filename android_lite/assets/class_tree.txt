@@ -1,7 +1,7 @@
-keys:only_object_multiclass.pb:2
-kitchen utensils:only_object_multiclass.pb:6
-paper:only_object_multiclass.pb:3
-phone:only_object_multiclass.pb:5
-remote control:only_object_multiclass.pb:1
-wallet:only_object_multiclass.pb:4
-walking stick:only_object_multiclass.pb:0
+keys:multiscale_sigmoid.pb:2
+kitchen utensils:multiscale_sigmoid.pb:6
+paper:multiscale_sigmoid.pb:3
+phone:multiscale_sigmoid.pb:5
+remote control:multiscale_sigmoid.pb:1
+wallet:multiscale_sigmoid.pb:4
+walking stick:multiscale_sigmoid.pb:0
