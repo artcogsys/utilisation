@@ -743,11 +743,11 @@ def add_final_training_ops(class_count, final_tensor_name, bottleneck_tensor,
         with tf.name_scope('Wx_plus_b'):
             logits = tf.matmul(multi_scale_features, layer_weights) + layer_biases
 
-    final_tensor = tf.nn.sigmoid(logits, name=final_tensor_name)
+    final_tensor = tf.nn.softmax(logits, name=final_tensor_name)
 
     with tf.name_scope('cross_entropy'):
-        cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(
-            labels=ground_truth_input * 0.95, logits=logits)
+        cross_entropy = tf.nn.softmax_cross_entropy_with_logits(
+            labels=ground_truth_input, logits=logits)
         with tf.name_scope('total'):
             cross_entropy_mean = tf.reduce_mean(cross_entropy)
     tf.summary.scalar('cross_entropy', cross_entropy_mean)
