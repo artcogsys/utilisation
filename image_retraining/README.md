@@ -78,3 +78,46 @@ Now that we have modified the object indices, the label indices have changed as 
 If we look at the previous example, the index of keys is now 0, the index of chair is now 1 because the previous index of this class is in the 1st index of this tensor. Similarly the new index for class stone would be 2.
 
 We will use these indices in `class_tree.txt` under the assets folder of the android project.
+
+## The Data
+The data is stored in the file `data.tar.gz`. Extract the contents of that in this folder to train the model.
+This dataset is curated from ImageNet dataset. The classes that we have are curated are combinations of synsets with id's:
+
+* couch
+  * n03077616
+  * n03115762
+  * n03115897
+  * n03122202
+  * n04256520
+* floor
+  * n04118021
+  * n09282208
+* key
+  * n03561047
+  * n03613294
+  * n03896984
+  * n04586581
+* kitchen
+  * n03619890
+* kitchen-utensils
+  * n03101986
+  * n03619890
+  * n03621049
+* papers
+  * n06255613
+  * n14974264
+* phone
+  * n02992529
+* remote
+  * n04074963
+* walking-stick
+  * n04317420
+  * n04546194
+* wallet
+  * n04548362
+
+For more information about a synset, you can visit http://image-net.org/synset?wnid=n03077616 and replace the `wnid` parameter in the url with the synset id that you are interested in.
+
+### Overcoming data imbalance
+To overcome the imbalance in data, we found the class with maximum number of images and repeated other datasets to match that number. We did that by literally copy pasting the entire class in the same folder with another name.
+
