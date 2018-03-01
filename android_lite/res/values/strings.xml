@@ -15,9 +15,9 @@
 -->
 <resources>
     <string name="description_info">Info</string>
-    <string name="splash_message">Welcome to Eye contact</string>
-    <string name="class_selection_description">Please choose the category of the object that you want to find.</string>
-    <string name="classifier_description">Announcing results using changing pitch feedback. Higher tones represent higher confidence. Classifying %s</string>
+    <string name="splash_message">Welcome to EyeContact</string>
+    <string name="class_selection_description">Please choose the type of object that you want to find.</string>
+    <string name="classifier_description">Announcing results using changing pitch feedback. Higher tones represent higher confidence. Finding %s</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 </resources>
