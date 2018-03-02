@@ -67,7 +67,8 @@ We have generated a model file using the `image_retraining` project. The android
 * When there are multiple object types (a wallet and a key) in the image, we fail to claim that either is there with high confidence.
 * pitch tone change can be supported by vibration.
 * Instead of pitch tone change, we could implement something like a "geiger counter" which constantly clicks but reduces the interval between clicks based on the confidence.
-* when the phone is parallel to the ground, the model works best. In cases where people are looking ahead, it doesn't work that well. We could try more data augmentations (image transformations and rotations) to fix that.
+* When the phone is parallel to the ground, the model works best. In cases where people are looking ahead, it doesn't work that well. We could try more data augmentations (image transformations and rotations) to fix that.
+* Using global average pooling and softmax assumes the existence of a single and close up object. However in our case, we're trying to create an object finder. Therefore, we are concerned with an unknown number of objects in various distances. I think in this case, combinations of global average pooling and max pooling converted to confidences using the sigmoid function may provide better results.
 
 ### Important commits
  * ADE20K "localized outputs" are removed completely with commit id `534f8d8901086923c71fabe937938c38c741adc5`.
