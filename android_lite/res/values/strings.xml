@@ -17,7 +17,7 @@
     <string name="description_info">Info</string>
     <string name="splash_message">Welcome to EyeContact</string>
     <string name="class_selection_description">Please choose the type of object that you want to find.</string>
-    <string name="classifier_description">Looking for %s. Announcing results using audio feedback. The higher the tone, the more likely it is that the $s is there.</string>
+    <string name="classifier_description" formatted="false">Looking for %s. Announcing results using audio feedback. The higher the tone, the more likely it is that the %s is there.</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
 </resources>
