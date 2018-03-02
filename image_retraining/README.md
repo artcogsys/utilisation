@@ -80,7 +80,7 @@ If we look at the previous example, the index of keys is now 0, the index of cha
 We will use these indices in `class_tree.txt` under the assets folder of the android project.
 
 ## The Data
-The data is stored in the file `data.tar.gz`. Extract the contents of that in this folder to train the model.
+The data is stored in Hinton, under `hinton.science.ru.nl:/vol/ccnlab-scratch1/eyecontact_data/` folder.
 This dataset is curated from ImageNet dataset. The classes that we have are curated are combinations of synsets with id's:
 
 * couch
@@ -119,5 +119,4 @@ This dataset is curated from ImageNet dataset. The classes that we have are cura
 For more information about a synset, you can visit http://image-net.org/synset?wnid=n03077616 and replace the `wnid` parameter in the url with the synset id that you are interested in.
 
 ### Overcoming data imbalance
-To overcome the imbalance in data, we found the class with maximum number of images and repeated other datasets to match that number. We did that by literally copy pasting the entire class in the same folder with another name.
-
+To overcome the imbalance in data, first we found the class that has the maximum number of images. Then we simply repeated other datasets to match that number. Assume that in a scenario where class `a` has 20 images, and class `b` has 5 images, we simply repeat the data for class `b` 4 times.

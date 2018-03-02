@@ -62,6 +62,13 @@ You need [android studio](https://developer.android.com/studio/index.html), andr
 ### How it works?
 We have generated a model file using the `image_retraining` project. The android project assumes that this model file is copied to the `assets` folder and referred in the `assets/class_tree.txt` file. This project uses the Android NDK (Native Development Kit) to load the compiled Tensorflow C API (`lib_tensorflow.so`). Implements and imports some JNI classes to interact with this API using the android (Java) sources. Upon request, java sources load the model file and create a tensorflow session with that. Using the JNI we feed data to the session, run it and get outputs in Java (See: `android/src/net/ccnlab/eyecontact/TensorFlowImageClassifier.java`).
 
+### Next Steps
+* We may need to add more classes.
+* When there are multiple object types (a wallet and a key) in the image, we fail to claim that either is there with high confidence.
+* pitch tone change can be supported by vibration.
+* Instead of pitch tone change, we could implement something like a "geiger counter" which constantly clicks but reduces the interval between clicks based on the confidence.
+* when the phone is parallel to the ground, the model works best. In cases where people are looking ahead, it doesn't work that well. We could try more data augmentations (image transformations and rotations) to fix that.
+
 ### Important commits
  * ADE20K "localized outputs" are removed completely with commit id `534f8d8901086923c71fabe937938c38c741adc5`.
  * ADE20K "localized outputs" are removed from the android app in commit `0faf138aca9e257c1d7bcd0c41fe45fb14d59457`.
