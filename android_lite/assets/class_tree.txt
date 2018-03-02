@@ -1,7 +1,7 @@
 keys:multiscale_softmax.pb:2
-kitchen utensils:multiscale_softmax.pb:6
+kitchen_utensils:multiscale_softmax.pb:6
 paper:multiscale_softmax.pb:3
 phone:multiscale_softmax.pb:5
-remote control:multiscale_softmax.pb:1
+remote_control:multiscale_softmax.pb:1
 wallet:multiscale_softmax.pb:4
-walking stick:multiscale_softmax.pb:0
+walking_stick:multiscale_softmax.pb:0

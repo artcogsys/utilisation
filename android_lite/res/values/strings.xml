@@ -20,4 +20,11 @@
     <string name="classifier_description" formatted="false">Looking for %s. Announcing results using audio feedback. The higher the tone, the more likely it is that the %s is there. Press back to stop.</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <string name="keys">keys</string>
+    <string name="kitchen_utensils">kitchen utensils</string>
+    <string name="paper">paper</string>
+    <string name="phone">phone</string>
+    <string name="remote_control">remote control</string>
+    <string name="wallet">wallet</string>
+    <string name="walking_stick">walking stick</string>
 </resources>

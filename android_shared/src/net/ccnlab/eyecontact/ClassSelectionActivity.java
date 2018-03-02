@@ -4,6 +4,7 @@ import android.app.ListActivity;
 import android.app.VoiceInteractor;
 import android.app.VoiceInteractor.PickOptionRequest;
 import android.app.VoiceInteractor.PickOptionRequest.Option;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -177,11 +178,22 @@ public class ClassSelectionActivity extends ListActivity {
             } else {
                 name = entityText;
             }
-            entity = new Entity(name, entityLevel, classId, modelFile);
+            String nameFromKey = name;
+            try {
+                nameFromKey = getStringByIdentifier(getApplicationContext(), name);
+            } catch(Exception e) {
+                // pass
+            }
+
+            entity = new Entity(nameFromKey, entityLevel, classId, modelFile);
 
             parent.addChild(entity);
             entity.setParent(parent);
         }
         return entity;
+    }
+
+    public String getStringByIdentifier(Context context, String name) {
+        return getString(context.getResources().getIdentifier(name, "string", context.getPackageName()));
     }
 }

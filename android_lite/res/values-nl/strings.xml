@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+ Copyright 2016 The TensorFlow Authors. All Rights Reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<resources>
+    <string name="description_info">Info</string>
+    <string name="splash_message">Welkom bij EyeContact</string>
+    <string name="class_selection_description">Kiest u het voorwerp dat u wilt zoeken.</string>
+    <string name="classifier_description" formatted="false">Op zoek naar %s. Aankondiging van resultaten met behulp van audiofeedback. Hoe hoger de toon, hoe waarschijnlijker het is dat de %s er is.</string>
+    <string name="request_permission">Deze applicatie vraagt om toegang tot uw camera.</string>
+    <string name="camera_error">Dit apparaat ondersteunt Camera2 API niet.</string>
+    <string name="keys">Sleutels</string>
+    <string name="kitchen_utensils">Keukengerei</string>
+    <string name="paper">Papier</string>
+    <string name="phone">Mobiele telefoon</string>
+    <string name="remote_control">Afstandsbediening</string>
+    <string name="wallet">Portemonnee</string>
+    <string name="walking_stick">Wandelstok</string>
+</resources>
