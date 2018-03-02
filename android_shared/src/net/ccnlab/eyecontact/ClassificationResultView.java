@@ -45,8 +45,8 @@ public class ClassificationResultView extends AccessibilityUpdatingTextView impl
                 @Override
                 public void run() {
                     setText(resultString);
-                    requestFocus();
-                    sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
+//                    requestFocus();
+//                    sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED);
                 }
             });
 
