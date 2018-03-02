@@ -154,7 +154,8 @@ public class ClassifierActivity extends CameraActivity implements OnImageAvailab
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        this.setTitle(String.format(this.getTitle().toString(), getIntent().getStringExtra("classLabel")));
+        // rewriting string classifier_description
+        this.setTitle(String.format(this.getTitle().toString(), getIntent().getStringExtra("classLabel"), getIntent().getStringExtra("classLabel")));
         super.onCreate(savedInstanceState);
     }
 }
